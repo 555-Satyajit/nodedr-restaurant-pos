@@ -73,30 +73,47 @@ export function SchedulesPanel({
     },
     onError: (e) => toast.error(msg(e)),
   });
-  const sel = "h-9 rounded-lg border border-border bg-background px-2 text-sm";
+  const sel = "h-11 sm:h-9 rounded-xl border border-input bg-background px-3 text-xs sm:text-sm font-medium text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-2";
 
   return (
-    <Card className="flex flex-col gap-4 p-4 print:hidden">
-      <div>
-        <h3 className="font-medium text-foreground">Email this report on a schedule</h3>
+    <Card className="flex flex-col gap-4 p-4 sm:p-5 rounded-2xl border border-border/80 shadow-2xs print:hidden">
+      <div className="flex flex-col gap-1">
+        <h3 className="text-sm font-semibold text-foreground">Email this report on a schedule</h3>
         <p className="text-xs text-muted-foreground">
-          Sent through your own SMTP server at 06:00 branch time.
-          {data && !data.emailConfigured && " Email is not set up on this server yet (SMTP_URL and SMTP_FROM)."}
+          Automated export delivered via SMTP at 06:00 branch time.
+          {data && !data.emailConfigured && " (Note: Email service not configured yet on this server)."}
         </p>
       </div>
-      <div className="flex flex-wrap items-end gap-3">
-        <select aria-label="Frequency" className={sel} value={frequency} onChange={(e) => setFrequency(e.target.value as Schedule["frequency"])}>
-          <option value="DAILY">Daily</option>
-          <option value="WEEKLY">Weekly</option>
-          <option value="MONTHLY">Monthly</option>
-        </select>
-        <select aria-label="File format" className={sel} value={format} onChange={(e) => setFormat(e.target.value)}>
-          <option value="xlsx">Excel (.xlsx)</option>
-          <option value="pdf">PDF</option>
-          <option value="csv">CSV</option>
-        </select>
-        <Input aria-label="Recipients" className="min-w-64 flex-1" placeholder="owner@cafe.com, accountant@firm.com" value={recipients} onChange={(e) => setRecipients(e.target.value)} />
-        <Button disabled={!recipients.trim() || create.isPending} onClick={() => create.mutate()}>Schedule</Button>
+
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2.5">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
+          <select aria-label="Frequency" className={sel} value={frequency} onChange={(e) => setFrequency(e.target.value as Schedule["frequency"])}>
+            <option value="DAILY">Daily (Yesterday)</option>
+            <option value="WEEKLY">Weekly (Mondays)</option>
+            <option value="MONTHLY">Monthly (1st)</option>
+          </select>
+          <select aria-label="File format" className={sel} value={format} onChange={(e) => setFormat(e.target.value)}>
+            <option value="xlsx">Excel (.xlsx)</option>
+            <option value="pdf">PDF (.pdf)</option>
+            <option value="csv">CSV (.csv)</option>
+          </select>
+        </div>
+
+        <Input
+          aria-label="Recipients"
+          className="h-11 sm:h-9 flex-1 text-xs sm:text-sm rounded-xl"
+          placeholder="owner@cafe.com, accountant@firm.com"
+          value={recipients}
+          onChange={(e) => setRecipients(e.target.value)}
+        />
+
+        <Button
+          disabled={!recipients.trim() || create.isPending}
+          onClick={() => create.mutate()}
+          className="h-11 sm:h-9 rounded-xl text-xs font-semibold px-4 active:scale-98"
+        >
+          {create.isPending ? "Scheduling…" : "Schedule"}
+        </Button>
       </div>
       {data && data.schedules.length > 0 && (
         <ul className="flex flex-col divide-y divide-border">

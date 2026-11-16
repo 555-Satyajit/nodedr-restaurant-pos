@@ -48,8 +48,7 @@ function fromEntry(e: ProductionEntry | undefined, role: "INPUT" | "OUTPUT"): Ro
   return rows.length ? rows : [blank()];
 }
 
-// Guided "New production entry". Staff type what was really used and what really came out. Nothing here
-// is calculated from a recipe, and nothing here shows a cost.
+// Guided "New production entry". Staff type what was really used and what really came out.
 export function ProductionEntryDialog({
   branchId,
   open,
@@ -59,7 +58,6 @@ export function ProductionEntryDialog({
   branchId: string | null;
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  /** A posted entry being replaced: starts from its numbers and asks for a reason. */
   correcting?: ProductionEntry;
 }) {
   const { data: items } = useStockItems(branchId);
@@ -149,94 +147,117 @@ export function ProductionEntryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="flex flex-col max-h-[90dvh] sm:max-h-[85vh] sm:max-w-2xl p-0 gap-0 overflow-hidden rounded-2xl">
+        {/* Sticky Header */}
+        <DialogHeader className="p-4 sm:p-5 pb-3 border-b border-border/80 shrink-0 bg-background">
           <DialogTitle>{correcting ? `Correct ${correcting.entryNo}` : "New production entry"}</DialogTitle>
           <DialogDescription>
             Record what was actually used and what was actually made. This tracks quantities only; it does not work out a cost.
           </DialogDescription>
         </DialogHeader>
 
-        {step === "form" ? (
-          <div className="flex flex-col gap-5">
-            <section className="flex flex-col gap-2" aria-label="Finished product">
-              <Label>Made (actual quantity)</Label>
-              {outputs.map((r) => lineRow(setOutputs, outputs, r, products, "Finished product"))}
-              {products.length === 0 && (
-                <p className="text-xs text-muted-foreground">No finished products yet. Add one under Stock items with type &ldquo;Finished product&rdquo;.</p>
-              )}
-              <div><Button type="button" variant="ghost" size="sm" onClick={() => setOutputs([...outputs, blank()])}>+ Another finished product</Button></div>
-            </section>
+        {/* Scrollable Body Content */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5">
+          {step === "form" ? (
+            <div className="flex flex-col gap-5">
+              <section className="flex flex-col gap-2" aria-label="Finished product">
+                <Label>Made (actual quantity)</Label>
+                {outputs.map((r) => lineRow(setOutputs, outputs, r, products, "Finished product"))}
+                {products.length === 0 && (
+                  <p className="text-xs text-muted-foreground">No finished products yet. Add one under Stock items with type &ldquo;Finished product&rdquo;.</p>
+                )}
+                <div><Button type="button" variant="ghost" size="sm" onClick={() => setOutputs([...outputs, blank()])}>+ Another finished product</Button></div>
+              </section>
 
-            <section className="flex flex-col gap-2" aria-label="Ingredients used">
-              <div className="flex items-center justify-between">
-                <Label>Used (actual quantity)</Label>
-                {!!suggestions?.length && (
-                  <Button type="button" variant="outline" size="sm" onClick={() => setInputs(suggestions.map((s) => blank({ ingredientId: s.ingredientId, unit: s.unit, hint: `${s.lastQuantity} ${s.unit}` })))}>
-                    List what we used last time
+              <section className="flex flex-col gap-2" aria-label="Ingredients used">
+                <div className="flex items-center justify-between">
+                  <Label>Used (actual quantity)</Label>
+                  {!!suggestions?.length && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => setInputs(suggestions.map((s) => blank({ ingredientId: s.ingredientId, unit: s.unit, hint: `${s.lastQuantity} ${s.unit}` })))}>
+                      List what we used last time
+                    </Button>
+                  )}
+                </div>
+                {inputs.map((r) => lineRow(setInputs, inputs, r, raw, "Ingredient"))}
+                <div><Button type="button" variant="ghost" size="sm" onClick={() => setInputs([...inputs, blank()])}>+ Add ingredient</Button></div>
+                {!!suggestions?.length && <p className="text-xs text-muted-foreground">The list only reminds you which ingredients were used. Type today&rsquo;s real quantities.</p>}
+              </section>
+
+              <section className="grid grid-cols-2 gap-3" aria-label="Details">
+                <div className="col-span-2 flex flex-col gap-1.5 sm:col-span-1">
+                  <Label htmlFor="p-when">Date and time</Label>
+                  <Input id="p-when" type="datetime-local" value={producedAt} onChange={(e) => setProducedAt(e.target.value)} />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="p-shift">Shift</Label>
+                  <select id="p-shift" className={selectClass} value={shift} onChange={(e) => setShift(e.target.value)}>
+                    <option value="">None</option>
+                    {SHIFTS.map((s) => (<option key={s}>{s}</option>))}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="p-loc">Kitchen / location</Label>
+                  <Input id="p-loc" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Main kitchen" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="p-ref">Batch number (optional)</Label>
+                  <Input id="p-ref" value={batchRef} onChange={(e) => setBatchRef(e.target.value)} />
+                </div>
+                <div className="col-span-2 flex flex-col gap-1.5">
+                  <Label htmlFor="p-notes">Notes (optional)</Label>
+                  <Textarea id="p-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
+                </div>
+                {correcting && (
+                  <div className="col-span-2 flex flex-col gap-1.5">
+                    <Label htmlFor="p-reason">Why is this being corrected?</Label>
+                    <Input id="p-reason" value={reason} onChange={(e) => setReason(e.target.value)} />
+                  </div>
+                )}
+              </section>
+              {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <p className="text-sm font-medium">Check before posting. Stock changes only when you press Post.</p>
+              <ReviewTable title="Will be taken out of stock" lines={preview?.lines.filter((l) => l.role === "INPUT") ?? []} sign="-" />
+              <ReviewTable title="Will be added to stock" lines={preview?.lines.filter((l) => l.role === "OUTPUT") ?? []} sign="+" />
+              {preview && !preview.canPost && (
+                <p role="alert" className="text-sm text-destructive">There is not enough of at least one ingredient. Fix the stock count or the quantity first.</p>
+              )}
+              {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+            </div>
+          )}
+        </div>
+
+        {/* Permanently Sticky Footer: Always Visible Above Navigation & Keyboard */}
+        <DialogFooter className="p-3 sm:p-4 border-t border-border/80 bg-background shrink-0 gap-2 flex-col sm:flex-row sm:justify-end">
+          {step === "form" ? (
+            <>
+              <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => onOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button type="button" className="w-full sm:w-auto" onClick={review} disabled={busy}>
+                {busy ? "Checking…" : "Review"}
+              </Button>
+            </>
+          ) : (
+            <div className="flex items-center justify-between w-full gap-2">
+              <Button type="button" variant="outline" onClick={() => setStep("form")}>
+                Back
+              </Button>
+              <div className="flex items-center gap-2">
+                {!correcting && (
+                  <Button type="button" variant="outline" onClick={draft} disabled={busy}>
+                    Save draft
                   </Button>
                 )}
+                <Button type="button" onClick={post} disabled={busy || !preview?.canPost}>
+                  {busy ? "Posting…" : correcting ? "Reverse old and post this" : "Post"}
+                </Button>
               </div>
-              {inputs.map((r) => lineRow(setInputs, inputs, r, raw, "Ingredient"))}
-              <div><Button type="button" variant="ghost" size="sm" onClick={() => setInputs([...inputs, blank()])}>+ Add ingredient</Button></div>
-              {!!suggestions?.length && <p className="text-xs text-muted-foreground">The list only reminds you which ingredients were used. Type today&rsquo;s real quantities.</p>}
-            </section>
-
-            <section className="grid grid-cols-2 gap-3" aria-label="Details">
-              <div className="col-span-2 flex flex-col gap-1.5 sm:col-span-1">
-                <Label htmlFor="p-when">Date and time</Label>
-                <Input id="p-when" type="datetime-local" value={producedAt} onChange={(e) => setProducedAt(e.target.value)} />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="p-shift">Shift</Label>
-                <select id="p-shift" className={selectClass} value={shift} onChange={(e) => setShift(e.target.value)}>
-                  <option value="">None</option>
-                  {SHIFTS.map((s) => (<option key={s}>{s}</option>))}
-                </select>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="p-loc">Kitchen / location</Label>
-                <Input id="p-loc" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Main kitchen" />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="p-ref">Batch number (optional)</Label>
-                <Input id="p-ref" value={batchRef} onChange={(e) => setBatchRef(e.target.value)} />
-              </div>
-              <div className="col-span-2 flex flex-col gap-1.5">
-                <Label htmlFor="p-notes">Notes (optional)</Label>
-                <Textarea id="p-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} />
-              </div>
-              {correcting && (
-                <div className="col-span-2 flex flex-col gap-1.5">
-                  <Label htmlFor="p-reason">Why is this being corrected?</Label>
-                  <Input id="p-reason" value={reason} onChange={(e) => setReason(e.target.value)} />
-                </div>
-              )}
-            </section>
-            {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-              <Button type="button" onClick={review} disabled={busy}>{busy ? "Checking…" : "Review"}</Button>
-            </DialogFooter>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-4">
-            <p className="text-sm font-medium">Check before posting. Stock changes only when you press Post.</p>
-            <ReviewTable title="Will be taken out of stock" lines={preview?.lines.filter((l) => l.role === "INPUT") ?? []} sign="-" />
-            <ReviewTable title="Will be added to stock" lines={preview?.lines.filter((l) => l.role === "OUTPUT") ?? []} sign="+" />
-            {preview && !preview.canPost && (
-              <p role="alert" className="text-sm text-destructive">There is not enough of at least one ingredient. Fix the stock count or the quantity first.</p>
-            )}
-            {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
-            <DialogFooter className="gap-2 sm:justify-between">
-              <Button type="button" variant="outline" onClick={() => setStep("form")}>Back</Button>
-              <div className="flex gap-2">
-                {!correcting && <Button type="button" variant="outline" onClick={draft} disabled={busy}>Save draft</Button>}
-                <Button type="button" onClick={post} disabled={busy || !preview?.canPost}>{busy ? "Posting…" : correcting ? "Reverse old and post this" : "Post"}</Button>
-              </div>
-            </DialogFooter>
-          </div>
-        )}
+            </div>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

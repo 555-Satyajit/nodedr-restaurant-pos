@@ -148,31 +148,72 @@ export function StockJournalVoucher({ branchId, open, onOpenChange, productId, c
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[100dvh] max-h-[100dvh] w-screen max-w-none flex-col gap-0 overflow-hidden rounded-none p-0 sm:h-[94vh] sm:w-[96vw] sm:max-w-[96vw] sm:rounded-xl xl:max-w-7xl">
-        <DialogHeader className="border-b border-border px-4 py-3">
-          <DialogTitle>Stock journal voucher <span className="ml-2 text-sm font-normal text-muted-foreground">Manufacturing entry · number assigned on posting</span></DialogTitle>
-          <DialogDescription>Materials consumed on the left, products made on the right. Nothing changes in stock until you post.</DialogDescription>
+      <DialogContent
+        showCloseButton={false}
+        className="fixed inset-0 z-50 flex h-dvh max-h-dvh w-screen max-w-none translate-x-0 translate-y-0 top-0 left-0 flex-col gap-0 overflow-hidden rounded-none bg-background p-0 sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:h-[94vh] sm:max-h-[94vh] sm:w-[96vw] sm:max-w-[96vw] sm:rounded-2xl sm:border sm:border-border sm:shadow-2xl xl:max-w-7xl"
+      >
+        <DialogHeader className="flex shrink-0 flex-row items-center justify-between border-b border-border bg-card px-4 py-3 sm:px-6">
+          <div className="min-w-0 pr-4">
+            <DialogTitle className="text-base sm:text-lg font-bold flex flex-wrap items-baseline gap-1.5 sm:gap-2">
+              <span>Stock journal voucher</span>
+              <span className="text-xs sm:text-sm font-normal text-muted-foreground truncate">Manufacturing entry</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground line-clamp-1 sm:line-clamp-none">
+              Materials consumed on the left, products made on the right. Nothing changes in stock until you post.
+            </DialogDescription>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
+            onClick={() => onOpenChange(false)}
+            aria-label="Close"
+          >
+            ×
+          </Button>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto px-4 py-4">
+        <div className="flex-1 min-h-0 overflow-y-auto px-3.5 py-4 sm:px-6">
           {!review ? (
             <div className="flex flex-col gap-4">
-              <section aria-label="Voucher details" className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-                <div className="col-span-2 flex flex-col gap-1.5 md:col-span-1"><Label htmlFor="v-when">Date and time</Label><Input id="v-when" type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} /></div>
-                <div className="flex flex-col gap-1.5"><Label htmlFor="v-batch">Batch / run no.</Label><Input id="v-batch" value={batchRef} onChange={(e) => setBatchRef(e.target.value)} placeholder="Optional" /></div>
-                <div className="flex flex-col gap-1.5"><Label htmlFor="v-loc">Location / godown</Label><Input id="v-loc" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Main kitchen" /></div>
-                <div className="flex flex-col gap-1.5"><Label htmlFor="v-shift">Shift</Label><select id="v-shift" className={selectClass} value={shift} onChange={(e) => setShift(e.target.value)}><option value="">None</option>{SHIFTS.map((s) => <option key={s}>{s}</option>)}</select></div>
-                <div className="flex flex-col gap-1.5"><Label htmlFor="v-made">Made on</Label><Input id="v-made" type="date" value={madeOn} onChange={(e) => setMadeOn(e.target.value)} /></div>
-                <div className="flex flex-col gap-1.5"><Label htmlFor="v-exp">Use by</Label><Input id="v-exp" type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} /></div>
+              <section aria-label="Voucher details" className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 rounded-xl border border-border/70 bg-card p-3 shadow-xs">
+                <div className="flex flex-col gap-1 sm:col-span-2 md:col-span-1">
+                  <Label htmlFor="v-when" className="text-xs font-semibold">Date and time</Label>
+                  <Input id="v-when" type="datetime-local" className="h-9 text-xs rounded-lg" value={when} onChange={(e) => setWhen(e.target.value)} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="v-batch" className="text-xs font-semibold">Batch / run no.</Label>
+                  <Input id="v-batch" className="h-9 text-xs rounded-lg" value={batchRef} onChange={(e) => setBatchRef(e.target.value)} placeholder="Optional" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="v-loc" className="text-xs font-semibold">Location / godown</Label>
+                  <Input id="v-loc" className="h-9 text-xs rounded-lg" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Main kitchen" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="v-shift" className="text-xs font-semibold">Shift</Label>
+                  <select id="v-shift" className={selectClass} value={shift} onChange={(e) => setShift(e.target.value)}>
+                    <option value="">None</option>
+                    {SHIFTS.map((s) => <option key={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="v-made" className="text-xs font-semibold">Made on</Label>
+                  <Input id="v-made" type="date" className="h-9 text-xs rounded-lg" value={madeOn} onChange={(e) => setMadeOn(e.target.value)} />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="v-exp" className="text-xs font-semibold">Use by</Label>
+                  <Input id="v-exp" type="date" className="h-9 text-xs rounded-lg" value={expiry} onChange={(e) => setExpiry(e.target.value)} />
+                </div>
               </section>
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <section aria-label="Source / Consumption" className="rounded-xl border border-border">
-                  <div className="flex items-center justify-between border-b border-border bg-muted/40 px-3 py-2">
-                    <h3 className="text-sm font-semibold">Source / Consumption</h3>
-                    <Button type="button" variant="outline" size="sm" disabled={prefill.isPending} onClick={fillRecipe}>Fill from recipe</Button>
+                <section aria-label="Source / Consumption" className="rounded-xl border border-border/80 bg-card overflow-hidden shadow-xs">
+                  <div className="flex items-center justify-between border-b border-border bg-secondary/40 px-3.5 py-2.5">
+                    <h3 className="text-xs sm:text-sm font-bold text-foreground">Source / Consumption</h3>
+                    <Button type="button" variant="outline" size="sm" className="h-7.5 rounded-lg text-xs font-semibold px-2.5" disabled={prefill.isPending} onClick={fillRecipe}>Fill from recipe</Button>
                   </div>
-                  <div className="overflow-x-auto p-2">
+                  <div className="overflow-x-auto p-2 sm:p-3">
                     <table className="w-full min-w-[34rem] text-sm">
                       <thead><tr><th className={head}>Name of item</th><th className={`${head} text-right`}>Available</th><th className={head}>Quantity</th><th className={head}>Unit</th><th className={head}>Rate</th><th className={`${head} text-right`}>Amount</th><th className="w-8" /></tr></thead>
                       <tbody>
@@ -195,14 +236,14 @@ export function StockJournalVoucher({ branchId, open, onOpenChange, productId, c
                         })}
                       </tbody>
                     </table>
-                    {yieldInfo && <p className="px-1 pt-1 text-xs text-muted-foreground">Against the recipe: <b className={yieldInfo.pct > 5 ? "text-destructive" : "text-foreground"}>{yieldInfo.pct > 0 ? "+" : ""}{yieldInfo.pct.toFixed(1)}%</b> ingredient use ({yieldInfo.used} of {yieldInfo.expected} expected, same-unit rows only).</p>}
-                    <div className="flex items-center justify-between px-1 pt-1"><Button type="button" variant="ghost" size="sm" onClick={() => setIns([...ins, blankIn()])}>+ Add ingredient</Button><span className="text-xs text-muted-foreground">Typed rates total <b className="tabular-nums text-foreground">{money(estimate)}</b></span></div>
+                    {yieldInfo && <p className="px-1 pt-1.5 text-xs text-muted-foreground">Against the recipe: <b className={yieldInfo.pct > 5 ? "text-destructive" : "text-foreground"}>{yieldInfo.pct > 0 ? "+" : ""}{yieldInfo.pct.toFixed(1)}%</b> ingredient use ({yieldInfo.used} of {yieldInfo.expected} expected, same-unit rows only).</p>}
+                    <div className="flex items-center justify-between px-1 pt-2 border-t border-border/60 mt-1"><Button type="button" variant="ghost" size="sm" className="h-8 text-xs font-semibold text-primary hover:text-primary" onClick={() => setIns([...ins, blankIn()])}>+ Add ingredient</Button><span className="text-xs text-muted-foreground">Typed rates total <b className="tabular-nums text-foreground">{money(estimate)}</b></span></div>
                   </div>
                 </section>
 
-                <section aria-label="Destination / Production" className="rounded-xl border border-border">
-                  <div className="border-b border-border bg-muted/40 px-3 py-2"><h3 className="text-sm font-semibold">Destination / Production</h3></div>
-                  <div className="overflow-x-auto p-2">
+                <section aria-label="Destination / Production" className="rounded-xl border border-border/80 bg-card overflow-hidden shadow-xs">
+                  <div className="border-b border-border bg-secondary/40 px-3.5 py-2.5"><h3 className="text-xs sm:text-sm font-bold text-foreground">Destination / Production</h3></div>
+                  <div className="overflow-x-auto p-2 sm:p-3">
                     <table className="w-full min-w-[22rem] text-sm">
                       <thead><tr><th className={head}>Name of item</th><th className={head}>Quantity made</th><th className={head}>Unit</th><th className="w-8" /></tr></thead>
                       <tbody>
@@ -219,7 +260,7 @@ export function StockJournalVoucher({ branchId, open, onOpenChange, productId, c
                         })}
                       </tbody>
                     </table>
-                    <div className="px-1 pt-1"><Button type="button" variant="ghost" size="sm" onClick={() => setOuts([...outs, blankOut()])}>+ Another finished product</Button></div>
+                    <div className="px-1 pt-2 border-t border-border/60 mt-1"><Button type="button" variant="ghost" size="sm" className="h-8 text-xs font-semibold text-primary hover:text-primary" onClick={() => setOuts([...outs, blankOut()])}>+ Another finished product</Button></div>
                     {products.length === 0 && <p className="px-1 text-xs text-muted-foreground">No finished products yet. Add one under Stock items with type &ldquo;Finished product&rdquo;.</p>}
                     {settings?.enabled && outs.length > 1 && <p className="px-1 pt-1 text-xs text-muted-foreground">Cost per unit is worked out only when one product is made. With several products the voucher records quantities and consumption without a unit cost.</p>}
                     {!settings?.enabled && <p className="px-1 pt-1 text-xs text-muted-foreground">Costing is switched off, so this voucher records quantities only.</p>}
@@ -247,7 +288,7 @@ export function StockJournalVoucher({ branchId, open, onOpenChange, productId, c
                   )}
                 </section>
               </div>
-              <div className="flex flex-col gap-1.5"><Label htmlFor="v-narr">Narration</Label><Input id="v-narr" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional note for this voucher" /></div>
+              <div className="flex flex-col gap-1.5"><Label htmlFor="v-narr" className="text-xs font-semibold">Narration</Label><Input id="v-narr" className="h-9 text-xs rounded-lg" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional note for this voucher" /></div>
             </div>
           ) : (
             <div className="flex flex-col gap-4">
@@ -271,11 +312,45 @@ export function StockJournalVoucher({ branchId, open, onOpenChange, productId, c
           {error && <p role="alert" className="mt-3 text-sm text-destructive">{error}</p>}
         </div>
 
-        <div className="flex items-center justify-between gap-2 border-t border-border bg-background px-4 py-3">
+        <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border/80 bg-background px-4 py-3 sm:px-6">
           {!review ? (
-            <><Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button><Button type="button" onClick={goReview} disabled={busy}>{busy ? "Checking…" : "Review voucher"}</Button></>
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 sm:h-9 rounded-xl text-xs flex-1 sm:flex-initial"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={goReview}
+                disabled={busy}
+                className="h-11 sm:h-9 rounded-xl text-xs font-semibold flex-1 sm:flex-initial"
+              >
+                {busy ? "Checking…" : "Review Voucher"}
+              </Button>
+            </>
           ) : (
-            <><Button type="button" variant="outline" onClick={() => { setReview(null); setError(null); }}>Back</Button><Button type="button" onClick={submit} disabled={busy || !review.canPost}>{busy ? "Posting…" : "Post voucher"}</Button></>
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 sm:h-9 rounded-xl text-xs flex-1 sm:flex-initial"
+                onClick={() => { setReview(null); setError(null); }}
+              >
+                Back
+              </Button>
+              <Button
+                type="button"
+                onClick={submit}
+                disabled={busy || !review.canPost}
+                className="h-11 sm:h-9 rounded-xl text-xs font-semibold flex-1 sm:flex-initial"
+              >
+                {busy ? "Posting…" : "Post Voucher"}
+              </Button>
+            </>
           )}
         </div>
       </DialogContent>

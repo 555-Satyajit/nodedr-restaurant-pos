@@ -352,6 +352,23 @@ export function useCreateSupplier(branchId: string | null) {
   });
 }
 
+export function useUpdateSupplier(branchId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, dto }: { id: string; dto: Partial<SupplierDto> }) =>
+      api.patch<Supplier>(`/inventory/suppliers/${id}?branchId=${branchId}`, dto),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["inventory", "suppliers", branchId] }),
+  });
+}
+
+export function useDeleteSupplier(branchId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/inventory/suppliers/${id}?branchId=${branchId}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["inventory", "suppliers", branchId] }),
+  });
+}
+
 // --- Purchase orders -----------------------------------------------------------
 
 export function usePurchaseOrders(branchId: string | null, status?: PurchaseOrderStatus) {

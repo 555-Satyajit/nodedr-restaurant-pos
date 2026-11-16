@@ -14,30 +14,18 @@ import { useMfgSettings } from "@/hooks/use-manufacturing";
 export function ManufacturingCard({ branchId }: { branchId: string | null }) {
   const { data: s } = useMfgSettings(branchId);
   const [open, setOpen] = useState(false);
-  // Visible to everyone who may record production. The costing switch only decides whether unit costs are worked out.
   if (!s) return null;
   return (
     <>
-      <Card aria-label="Manufacturing" className="flex shrink-0 flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-start gap-3">
-          <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><Factory className="size-5" aria-hidden /></span>
-          <div className="min-w-0">
-            <h2 className="text-sm font-semibold text-foreground">Manufacturing</h2>
-            <p className="text-xs text-muted-foreground">Stock journal voucher: record the materials consumed and the products made.</p>
-            {s.enabled && s.latest && (
-              <p className="mt-1 text-xs text-foreground">
-                Last batch: {s.latest.item} at <b className="tabular-nums">{Number(s.latest.unitCost).toFixed(2)}</b> per {s.latest.unit?.toLowerCase()} on {new Date(s.latest.producedAt).toLocaleDateString()}
-              </p>
-            )}
-          </div>
-        </div>
-        <div className="flex flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-          <Button className="h-12 w-full sm:h-9 sm:w-auto" onClick={() => setOpen(true)}>Manufacturing</Button>
-          {s.canReport && (
-            <Link href="/inventory/manufacturing-reports" className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-border px-3 text-sm hover:bg-muted sm:h-9 sm:w-auto">Stock Journal Reports</Link>
-          )}
-        </div>
-      </Card>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setOpen(true)}
+        className="h-8 rounded-xl border-border bg-card px-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+      >
+        <Factory className="h-3.5 w-3.5 text-primary mr-1" />
+        <span className="hidden sm:inline">Manufacturing</span>
+      </Button>
       {open && <StockJournalVoucher branchId={branchId} open onOpenChange={setOpen} />}
     </>
   );

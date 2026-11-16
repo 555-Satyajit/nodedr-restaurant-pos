@@ -1,8 +1,25 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { 
+  Building2, 
+  Calendar, 
+  CheckCircle2, 
+  ChevronRight, 
+  Download, 
+  Factory, 
+  FileSpreadsheet, 
+  FileText, 
+  Filter, 
+  Layers, 
+  Plus, 
+  Search, 
+  SlidersHorizontal, 
+  Sparkles, 
+  TrendingUp, 
+  Utensils 
+} from "lucide-react";
 import { InventoryTabs } from "@/components/inventory/inventory-tabs";
-import { selectClass } from "@/components/inventory/production-entry-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,23 +27,23 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { QUALITY_LABEL, QualityDialog } from "@/components/inventory/quality-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useBranch } from "@/hooks/use-branch";
 import { type MfgReport, mfgCsvUrl, useMfgReport, useMfgSettings } from "@/hooks/use-manufacturing";
 import { useStockItems } from "@/hooks/use-stock-journal";
+import { formatCurrency } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 const day = (d: Date) => d.toISOString().slice(0, 10);
 const num = (v: string | null | undefined, dp = 2) => (v == null ? "–" : Number(v).toLocaleString(undefined, { minimumFractionDigits: dp, maximumFractionDigits: dp }));
-const STATUS: Record<string, string> = { DRAFT: "Draft", POSTED: "Posted", VOIDED: "Reversed" };
+const STATUS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive"; badgeClass?: string }> = {
+  DRAFT: { label: "Draft", variant: "secondary" },
+  POSTED: { label: "Posted", variant: "default", badgeClass: "bg-emerald-600 hover:bg-emerald-600 text-white" },
+  VOIDED: { label: "Reversed", variant: "destructive" },
+};
 
-function Section({ title, csv, children }: { title: string; csv?: string; children: React.ReactNode }) {
-  return (
-    <section aria-label={title} className="flex flex-col gap-2">
-      <div className="flex items-center justify-between"><h2 className="text-sm font-semibold">{title}</h2>{csv && <a className="text-xs underline" href={csv}>Export CSV</a>}</div>
-      {children}
-    </section>
-  );
-}
-const Empty = ({ t }: { t: string }) => <Card className="py-8 text-center text-sm text-muted-foreground">{t}</Card>;
+const nativeSelectClass =
+  "h-11 sm:h-9 w-full rounded-xl border border-input bg-background px-3 text-xs sm:text-sm font-medium text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 export default function ManufacturingReportsPage() {
   const { branchId } = useBranch();
@@ -41,13 +58,13 @@ export default function ManufacturingReportsPage() {
   const [inspect, setInspect] = useState<MfgReport["batches"][number] | null>(null);
   const filters = { from: new Date(`${from}T00:00:00`).toISOString(), to: new Date(`${to}T23:59:59.999`).toISOString(), itemId, status };
   const { data, isLoading, isError, error } = useMfgReport(branchId, filters);
+
   const shown = useMemo(() => {
     const t = search.trim().toLowerCase();
     const rows = (data?.batches ?? []).filter((b) => !t || `${b.entryNo} ${b.item ?? ""} ${b.batchRef ?? ""}`.toLowerCase().includes(t));
     return sort === "cost" ? [...rows].sort((a, b) => Number(b.unitCost ?? 0) - Number(a.unitCost ?? 0)) : rows;
   }, [data, search, sort]);
 
-  // One row per day: everything consumed and everything produced by that day's POSTED vouchers.
   const daily = useMemo(() => {
     type Agg = { qty: number; unit: string; cost: number };
     const days = new Map<string, { vouchers: string[]; used: Map<string, Agg>; made: Map<string, Agg>; total: number }>();
@@ -68,6 +85,7 @@ export default function ManufacturingReportsPage() {
     }
     return [...days.entries()].sort((a, b) => b[0].localeCompare(a[0]));
   }, [data]);
+
   const dailyCsv = () => {
     const rows = [["Date", "Direction", "Item", "Quantity", "Unit", "Cost"]];
     for (const [d, e] of daily) {
@@ -78,104 +96,269 @@ export default function ManufacturingReportsPage() {
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `daily-production-${from}-to-${to}.csv`; a.click(); URL.revokeObjectURL(a.href);
   };
 
+  const totalBatches = data?.batches.length ?? 0;
+  const postedBatches = data?.batches.filter((b) => b.status === "POSTED").length ?? 0;
+  const totalProductionCost = data?.batches.filter((b) => b.status === "POSTED").reduce((sum, b) => sum + (Number(b.totalCost) || 0), 0) ?? 0;
+
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-[32px] font-semibold tracking-tight text-foreground">Stock Journal Reports</h1>
-        <p className="text-sm text-muted-foreground">Production, costs and menu price changes, from posted batches</p>
+    <div className="flex flex-col gap-4 sm:gap-6 pb-24 sm:pb-20">
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-0.5">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-foreground">
+              Manufacturing & Production Reports
+            </h1>
+            <Badge variant="secondary" className="text-[11px] font-medium text-muted-foreground border-border/70">
+              Recipe Costing
+            </Badge>
+          </div>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            Production yields, ingredient consumption, and batch unit cost analytics
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {data && mfgCsvUrl(branchId, "batches", filters) && (
+            <a
+              className="flex items-center justify-center gap-1.5 h-11 sm:h-9 px-4 rounded-xl border border-border/80 bg-secondary/50 hover:bg-secondary text-xs font-semibold text-foreground active:scale-98 transition-all"
+              href={mfgCsvUrl(branchId, "batches", filters)}
+            >
+              <Download className="h-4 w-4 text-muted-foreground" />
+              <span>Export Batches CSV</span>
+            </a>
+          )}
+        </div>
       </div>
+
       <InventoryTabs />
-      {s && !s.enabled && <Card className="p-4 text-sm text-muted-foreground">Manufacturing is switched off. Past batches are kept and still shown here; turn it on under Inventory &gt; Production to record new costed batches.</Card>}
-      <Card className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 lg:grid-cols-6">
-        <div className="flex flex-col gap-1.5"><Label htmlFor="r-from">From</Label><Input id="r-from" type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
-        <div className="flex flex-col gap-1.5"><Label htmlFor="r-to">To</Label><Input id="r-to" type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
-        <div className="flex flex-col gap-1.5"><Label htmlFor="r-item">Finished item</Label><select id="r-item" className={selectClass} value={itemId} onChange={(e) => setItemId(e.target.value)}><option value="">All</option>{(items ?? []).filter((i) => i.kind === "PREPARED").map((i) => (<option key={i.id} value={i.id}>{i.name}</option>))}</select></div>
-        <div className="flex flex-col gap-1.5"><Label htmlFor="r-st">Status</Label><select id="r-st" className={selectClass} value={status} onChange={(e) => setStatus(e.target.value)}><option value="">All</option><option value="POSTED">Posted</option><option value="DRAFT">Draft</option><option value="VOIDED">Reversed</option></select></div>
-        <div className="col-span-2 flex flex-col gap-1.5 sm:col-span-1"><Label htmlFor="r-search">Search</Label><Input id="r-search" className="h-9" type="search" placeholder="Batch, item or batch ref" value={search} onChange={(e) => setSearch(e.target.value)} /></div>
-        <div className="flex flex-col gap-1.5"><Label htmlFor="r-sort">Sort by</Label><select id="r-sort" className={selectClass} value={sort} onChange={(e) => setSort(e.target.value as "date" | "cost")}><option value="date">Newest first</option><option value="cost">Highest cost per unit</option></select></div>
-      </Card>
 
-      {isLoading ? (
-        <div className="flex flex-col gap-3">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}</div>
-      ) : isError ? (
-        <Card className="p-6 text-sm text-destructive">{(error as Error)?.message?.includes("permission") || (error as { status?: number })?.status === 403 ? "You do not have permission to view manufacturing reports." : "Could not load the reports. Try again."}</Card>
-      ) : data ? (
-        <>
-          <p className="text-xs text-muted-foreground">{data.note}</p>
-          <div className="flex flex-wrap gap-2">{data.statusCounts.map((c) => (<Badge key={c.status} variant="outline">{STATUS[c.status]}: {c.count}</Badge>))}</div>
+      {/* Settings notice if disabled */}
+      {!s?.enabled && (
+        <Card className="flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border-warning/40 bg-warning/5 text-xs text-warning">
+          <div className="flex items-center gap-2.5">
+            <Factory className="h-4 w-4 shrink-0" />
+            <span>Recipe costing is currently switched off. Past batches are preserved. Turn it on under <strong>Inventory &gt; Production</strong> to track unit margins.</span>
+          </div>
+        </Card>
+      )}
 
-          <section aria-label="Daily production" className="flex flex-col gap-2">
-            <div className="flex items-center justify-between"><h2 className="text-sm font-semibold">Daily production: what was consumed and what was made</h2>{daily.length > 0 && <button type="button" className="text-xs underline" onClick={dailyCsv}>Export CSV</button>}</div>
-            {daily.length ? daily.map(([d, e]) => (
-              <Card key={d} className="p-0">
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2 text-sm"><span className="font-semibold">{new Date(`${d}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}</span><span className="text-xs text-muted-foreground">{e.vouchers.join(", ")} · total production cost <b className="text-foreground">{num(String(e.total))}</b></span></div>
-                <div className="grid gap-4 p-4 text-sm md:grid-cols-2">
-                  <div><h3 className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Consumed</h3><ul className="divide-y divide-border">{[...e.used.entries()].map(([k, v]) => (<li key={k} className="flex justify-between gap-2 py-1"><span>{k.split("|")[0]}</span><span className="tabular-nums">{Math.round(v.qty * 1000) / 1000} {v.unit}{v.cost ? ` · ${num(String(v.cost))}` : ""}</span></li>))}</ul></div>
-                  <div><h3 className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Produced</h3><ul className="divide-y divide-border">{[...e.made.entries()].map(([k, v]) => (<li key={k} className="flex justify-between gap-2 py-1"><span>{k.split("|")[0]}</span><span className="tabular-nums">{Math.round(v.qty * 1000) / 1000} {v.unit}</span></li>))}</ul></div>
-                </div>
-              </Card>
-            )) : <Empty t="No posted vouchers in this date range." />}
-          </section>
+      {/* KPI Overview */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <div className="flex flex-col justify-between rounded-2xl border border-border/80 bg-card p-3 sm:p-4 shadow-2xs">
+          <span className="text-[11px] sm:text-xs font-medium text-muted-foreground line-clamp-1">Total Batches</span>
+          <span className="text-xl sm:text-2xl font-bold tracking-tight text-foreground tabular-nums my-1">
+            {totalBatches}
+          </span>
+          <span className="text-[10px] sm:text-[11px] text-muted-foreground line-clamp-1">In period</span>
+        </div>
 
-          <Section title="Batches by day" csv={mfgCsvUrl(branchId, "days", filters)}>
-            {data.batchesByDay.length ? <Card className="p-0"><ul className="divide-y divide-border text-sm">{data.batchesByDay.map((d) => (<li key={d.date} className="flex justify-between px-4 py-2"><span>{d.date} · {d.batches} batch{d.batches === 1 ? "" : "es"}</span><span className="tabular-nums">{num(d.totalCost)}</span></li>))}</ul></Card> : <Empty t="No posted batches in this period." />}
-          </Section>
+        <div className="flex flex-col justify-between rounded-2xl border border-border/80 bg-card p-3 sm:p-4 shadow-2xs">
+          <span className="text-[11px] sm:text-xs font-medium text-muted-foreground line-clamp-1">Posted Runs</span>
+          <span className="text-xl sm:text-2xl font-bold tracking-tight text-emerald-600 tabular-nums my-1">
+            {postedBatches}
+          </span>
+          <span className="text-[10px] sm:text-[11px] text-muted-foreground line-clamp-1">Completed production</span>
+        </div>
 
-          <Section title="Finished items: quantity and cost per unit" csv={mfgCsvUrl(branchId, "produced", filters)}>
-            {data.produced.length ? <Card className="p-0"><ul className="divide-y divide-border text-sm">{data.produced.map((p) => (<li key={p.itemId} className="grid grid-cols-[1fr_auto] gap-2 px-4 py-2"><span className="font-medium">{p.name}<span className="block text-xs font-normal text-muted-foreground">{p.batches} batch{p.batches === 1 ? "" : "es"} · total cost {num(p.totalCost)}</span></span><span className="text-right tabular-nums">{p.quantity} {p.unit}<span className="block text-xs text-muted-foreground">{num(p.avgUnitCost, 4)} per unit</span></span></li>))}</ul></Card> : <Empty t="Nothing produced in this period." />}
-          </Section>
+        <div className="flex flex-col justify-between rounded-2xl border border-border/80 bg-card p-3 sm:p-4 shadow-2xs">
+          <span className="text-[11px] sm:text-xs font-medium text-muted-foreground line-clamp-1">Total Batch Value</span>
+          <span className="text-base sm:text-2xl font-bold tracking-tight text-foreground tabular-nums my-1 truncate">
+            {formatCurrency(totalProductionCost)}
+          </span>
+          <span className="text-[10px] sm:text-[11px] text-muted-foreground line-clamp-1">Realized cost</span>
+        </div>
+      </div>
 
-          <Section title="Ingredients consumed" csv={mfgCsvUrl(branchId, "consumed", filters)}>
-            {data.consumed.length ? <Card className="p-0"><ul className="divide-y divide-border text-sm">{data.consumed.map((c, i) => (<li key={i} className="flex justify-between gap-3 px-4 py-2"><span>{c.date} · {c.name}</span><span className="tabular-nums">{c.quantity} {c.unit} · {num(c.cost)}</span></li>))}</ul></Card> : <Empty t="No ingredients consumed in this period." />}
-          </Section>
+      {/* Filter Toolbar */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 rounded-2xl border border-border/80 bg-card p-3 sm:p-4 shadow-2xs">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="m-from" className="text-xs font-semibold">From Date</Label>
+          <Input
+            id="m-from"
+            type="date"
+            value={from}
+            onChange={(e) => setFrom(e.target.value)}
+            className="h-11 sm:h-9 text-xs sm:text-sm rounded-xl"
+          />
+        </div>
 
-          <Section title="Additional production costs by category" csv={mfgCsvUrl(branchId, "costs", filters)}>
-            {data.additionalByCategory.length ? <Card className="p-0"><ul className="divide-y divide-border text-sm">{data.additionalByCategory.map((c) => (<li key={c.category} className="flex justify-between px-4 py-2"><span>{c.category}</span><span className="tabular-nums">{num(c.amount)}</span></li>))}</ul></Card> : <Empty t="No additional costs were counted in this period." />}
-          </Section>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="m-to" className="text-xs font-semibold">To Date</Label>
+          <Input
+            id="m-to"
+            type="date"
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            className="h-11 sm:h-9 text-xs sm:text-sm rounded-xl"
+          />
+        </div>
 
-          <Section title="Production history" csv={mfgCsvUrl(branchId, "batches", filters)}>
-            {shown.length ? <ul className="flex flex-col gap-2">{shown.map((b) => (
-              <li key={b.id}><Card className="flex flex-col gap-1 p-3 text-sm">
-                <div className="flex flex-wrap items-center gap-2"><span className="font-semibold">{b.entryNo}</span><Badge variant={b.status === "POSTED" ? "default" : "outline"}>{STATUS[b.status]}</Badge><span className="text-muted-foreground">{new Date(b.producedAt).toLocaleString()}</span></div>
-                <div>{b.quantity} {b.unit} {b.item}</div>
-                <div className="grid grid-cols-2 gap-x-4 text-xs text-muted-foreground sm:grid-cols-4"><span>Ingredients {num(b.ingredientCost)}</span><span>Additional {num(b.additionalCost)}</span><span>Total {num(b.totalCost)}</span><span>Per unit <b className="text-foreground">{num(b.unitCost, 4)}</b></span></div>
-                {b.status !== "DRAFT" && (
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground sm:grid-cols-4">
-                    <span>Menu price at posting <b className="text-foreground">{b.sellingPriceAtPost == null ? "not recorded" : num(b.sellingPriceAtPost)}</b></span>
-                    <span>Price changed to <b className="text-foreground">{b.priceChange ? num(b.priceChange.newPrice) : "no change"}</b></span>
-                    <span>Batch ref <b className="text-foreground">{b.batchRef ?? "–"}</b></span>
-                    <span>Made {b.manufacturedOn ? new Date(b.manufacturedOn).toLocaleDateString() : "–"} · expires {b.expiryDate ? new Date(b.expiryDate).toLocaleDateString() : "–"}</span>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="m-item" className="text-xs font-semibold">Finished Product</Label>
+          <select
+            id="m-item"
+            className={nativeSelectClass}
+            value={itemId}
+            onChange={(e) => setItemId(e.target.value)}
+          >
+            <option value="">All products</option>
+            {(items ?? []).filter((i) => i.kind === "PREPARED").map((i) => (<option key={i.id} value={i.id}>{i.name}</option>))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="m-status" className="text-xs font-semibold">Batch Status</Label>
+          <select
+            id="m-status"
+            className={nativeSelectClass}
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="">All statuses</option>
+            <option value="POSTED">Posted</option>
+            <option value="DRAFT">Draft</option>
+            <option value="VOIDED">Reversed</option>
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="m-search" className="text-xs font-semibold">Search Run</Label>
+          <Input
+            id="m-search"
+            placeholder="Batch # or item…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-11 sm:h-9 text-xs sm:text-sm rounded-xl"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="m-sort" className="text-xs font-semibold">Sort By</Label>
+          <select
+            id="m-sort"
+            className={nativeSelectClass}
+            value={sort}
+            onChange={(e) => setSort(e.target.value as "date" | "cost")}
+          >
+            <option value="date">Newest First</option>
+            <option value="cost">Highest Cost</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Main Batches List */}
+      <div className="flex flex-col gap-2">
+        <h2 className="text-sm font-semibold text-foreground px-0.5">Manufacturing Batches ({shown.length})</h2>
+
+        {isLoading ? (
+          <div className="flex flex-col gap-2.5">
+            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-16 rounded-2xl" />)}
+          </div>
+        ) : isError ? (
+          <Card className="p-8 text-center text-sm text-destructive rounded-2xl border-dashed">
+            Could not load manufacturing reports.
+          </Card>
+        ) : shown.length > 0 ? (
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block rounded-2xl border border-border/80 bg-card overflow-hidden shadow-2xs">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/40 hover:bg-muted/40 border-b border-border/80 text-xs">
+                    <TableHead className="font-semibold text-foreground py-3">Voucher #</TableHead>
+                    <TableHead className="font-semibold text-foreground py-3">Finished Product</TableHead>
+                    <TableHead className="font-semibold text-foreground py-3">Status</TableHead>
+                    <TableHead className="text-right font-semibold text-foreground py-3">Quantity Made</TableHead>
+                    <TableHead className="text-right font-semibold text-foreground py-3">Total Cost</TableHead>
+                    <TableHead className="text-right font-semibold text-foreground py-3">Unit Cost</TableHead>
+                    <TableHead className="text-right font-semibold text-foreground py-3">Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {shown.map((b) => {
+                    const cfg = STATUS[b.status] ?? { label: b.status, variant: "secondary" as const };
+                    return (
+                      <TableRow key={b.id} className="hover:bg-muted/30">
+                        <TableCell className="py-3 font-mono font-bold text-xs text-primary">
+                          {b.entryNo}
+                          {b.batchRef && <span className="text-[11px] font-normal text-muted-foreground ml-1.5">({b.batchRef})</span>}
+                        </TableCell>
+                        <TableCell className="py-3 font-semibold text-xs text-foreground">
+                          {b.item ?? "Custom production"}
+                        </TableCell>
+                        <TableCell className="py-3">
+                          <Badge variant={cfg.variant} className={cn("text-[10px] uppercase font-semibold", cfg.badgeClass)}>
+                            {cfg.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="py-3 text-right tabular-nums text-xs font-semibold text-foreground">
+                          {num(b.quantity)} {b.unit}
+                        </TableCell>
+                        <TableCell className="py-3 text-right tabular-nums text-xs font-bold text-foreground">
+                          {b.totalCost ? formatCurrency(b.totalCost) : "—"}
+                        </TableCell>
+                        <TableCell className="py-3 text-right tabular-nums text-xs font-semibold text-foreground">
+                          {b.unitCost ? formatCurrency(b.unitCost) : "—"}
+                        </TableCell>
+                        <TableCell className="py-3 text-right text-xs text-muted-foreground whitespace-nowrap">
+                          {new Date(b.producedAt).toLocaleDateString()}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Card View (< md) with Apple HIG touch-first styling */}
+            <div className="md:hidden flex flex-col gap-2.5">
+              {shown.map((b) => {
+                const cfg = STATUS[b.status] ?? { label: b.status, variant: "secondary" as const };
+                return (
+                  <div
+                    key={b.id}
+                    className="flex flex-col gap-2.5 rounded-2xl border border-border/80 bg-card p-4 shadow-2xs active:bg-secondary/30 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex flex-col">
+                        <span className="font-mono font-bold text-sm text-primary">{b.entryNo}</span>
+                        <span className="font-semibold text-sm text-foreground mt-0.5">{b.item ?? "Custom production"}</span>
+                      </div>
+                      <Badge variant={cfg.variant} className={cn("text-[10px] uppercase font-semibold", cfg.badgeClass)}>
+                        {cfg.label}
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50 text-xs">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-muted-foreground">Made</span>
+                        <span className="font-bold tabular-nums text-foreground">
+                          {num(b.quantity)} {b.unit}
+                        </span>
+                      </div>
+                      <div className="flex flex-col text-right">
+                        <span className="text-[10px] text-muted-foreground">Batch Cost</span>
+                        <span className="font-bold tabular-nums text-foreground">
+                          {b.totalCost ? formatCurrency(b.totalCost) : "—"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                )}
-                {b.status === "POSTED" && (
-                  <div className="flex flex-wrap items-center gap-2 text-xs">
-                    <span className="text-muted-foreground">Quality:</span>
-                    {b.quality ? <Badge variant={b.quality.result === "PASS" ? "default" : "outline"}>{QUALITY_LABEL[b.quality.result]}{b.quality.grade ? ` · ${b.quality.grade}` : ""}</Badge> : <span className="font-medium text-foreground">Not recorded</span>}
-                    {b.quality?.notes && <span className="text-muted-foreground">{b.quality.notes}</span>}
-                    {s?.canQuality && <Button type="button" variant="outline" className="ml-auto h-9" onClick={() => setInspect(b)}>{b.quality ? "Change inspection" : "Record inspection"}</Button>}
-                  </div>
-                )}
-                {b.corrects && <div className="text-xs text-muted-foreground">Corrects {b.corrects}</div>}
-                {b.correctedBy.length > 0 && <div className="text-xs text-muted-foreground">Replaced by {b.correctedBy.join(", ")}</div>}
-                {b.voidReason && <div className="text-xs text-muted-foreground">Reversed: {b.voidReason}</div>}
-                <details className="mt-1 text-xs">
-                  <summary className="flex h-9 cursor-pointer items-center font-medium text-foreground">View full voucher</summary>
-                  <div className="grid gap-3 pt-1 md:grid-cols-2">
-                    <div><h3 className="mb-1 font-semibold">Source (Consumption)</h3><ul className="divide-y divide-border">{b.lines.filter((l) => l.role === "INPUT").map((l, i) => (<li key={i} className="flex justify-between gap-2 py-1"><span>{l.item}<span className="block text-muted-foreground">{l.quantity} {l.unit}{l.rate ? ` × ${num(l.rate, 4)}` : ""}</span></span><span className="tabular-nums">{num(l.amount)}</span></li>))}</ul>
-                      {b.additionalCosts.length > 0 && <ul className="mt-1 divide-y divide-border border-t border-border">{b.additionalCosts.map((c, i) => (<li key={i} className="flex justify-between gap-2 py-1"><span>{c.category}{c.included ? "" : " (not counted)"}</span><span className="tabular-nums">{num(c.amount)}</span></li>))}</ul>}</div>
-                    <div><h3 className="mb-1 font-semibold">Destination (Production)</h3><ul className="divide-y divide-border">{b.lines.filter((l) => l.role === "OUTPUT").map((l, i) => (<li key={i} className="flex justify-between gap-2 py-1"><span>{l.item}</span><span className="tabular-nums">{l.quantity} {l.unit}</span></li>))}</ul>
-                      <p className="mt-1 text-muted-foreground">Cost per unit {num(b.unitCost, 4)} · total {num(b.totalCost)}</p></div>
-                  </div>
-                </details>
-              </Card></li>))}</ul> : <Empty t="No batches match these filters." />}
-          </Section>
-
-          <Section title="Menu price changes made from the Stock Journal" csv={mfgCsvUrl(branchId, "prices", filters)}>
-            {data.priceChanges.length ? <Card className="p-0"><ul className="divide-y divide-border text-sm">{data.priceChanges.map((p) => (<li key={p.id} className="grid gap-1 px-4 py-2 sm:grid-cols-[1fr_auto]"><span className="font-medium">{p.item}<span className="block text-xs font-normal text-muted-foreground">{p.by} · {new Date(p.changedAt).toLocaleString()} · batch {p.entryNo ?? "–"}</span></span><span className="tabular-nums">{num(p.oldPrice)} → <b>{num(p.newPrice)}</b><span className="block text-xs text-muted-foreground">unit cost then {num(p.unitCost, 4)}</span></span></li>))}</ul></Card> : <Empty t="No menu prices were changed from the Stock Journal in this period." />}
-          </Section>
-        </>
-      ) : null}
-    {inspect && <QualityDialog branchId={branchId} batch={inspect} onClose={() => setInspect(null)} />}
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <Card className="flex flex-col items-center justify-center gap-3 py-16 text-center rounded-2xl border-dashed bg-card/60">
+            <Utensils className="h-8 w-8 text-muted-foreground/60" />
+            <p className="text-sm font-semibold text-foreground">No Production Batches Found</p>
+            <p className="text-xs text-muted-foreground max-w-sm">
+              No batches recorded for this date range or filter criteria.
+            </p>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

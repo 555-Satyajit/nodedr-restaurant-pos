@@ -24,12 +24,12 @@ export function ProductGrid({
   const filtered = items?.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex h-full flex-col gap-3.5">
       <Input
-        placeholder="Search menu…"
+        placeholder="Search menu items, ingredients…"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="h-11"
+        className="h-11 rounded-xl text-xs sm:text-sm font-medium bg-background"
       />
 
       {categories && categories.length > 0 && (
@@ -40,17 +40,17 @@ export function ProductGrid({
           value={activeCategoryId ?? "all"}
           onChange={(id) => setActiveCategoryId(id === "all" ? undefined : id)}
           desktopListClassName="justify-start lg:h-auto lg:flex-wrap"
-          items={[{ id: "all", label: "All" }, ...categories.map((c) => ({ id: c.id, label: c.name, hint: `${c._count.items} items` }))]}
+          items={[{ id: "all", label: "All Items" }, ...categories.map((c) => ({ id: c.id, label: c.name, hint: `${c._count.items} items` }))]}
         />
       )}
 
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row lg:gap-5">
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row lg:gap-4">
       {categories && categories.length > 0 && (
         <nav
           aria-label="Category"
-          className="hidden w-52 shrink-0 flex-col gap-1 overflow-y-auto border-r border-border pr-3 lg:flex xl:w-60"
+          className="hidden w-48 shrink-0 flex-col gap-1 overflow-y-auto border-r border-border/70 pr-3 lg:flex xl:w-56 scrollbar-none"
         >
-          {[{ id: undefined as string | undefined, name: "All", count: undefined as number | undefined }, ...categories.map((c) => ({ id: c.id as string | undefined, name: c.name, count: c._count.items as number | undefined }))].map((c) => {
+          {[{ id: undefined as string | undefined, name: "All Items", count: undefined as number | undefined }, ...categories.map((c) => ({ id: c.id as string | undefined, name: c.name, count: c._count.items as number | undefined }))].map((c) => {
             const active = c.id === activeCategoryId;
             return (
               <button
@@ -59,17 +59,17 @@ export function ProductGrid({
                 aria-current={active ? "true" : undefined}
                 onClick={() => setActiveCategoryId(c.id)}
                 className={cn(
-                  "flex min-h-10 items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                  "flex min-h-11 items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-xs sm:text-sm transition-all active:scale-97 select-none",
                   active
-                    ? "bg-primary font-semibold text-primary-foreground shadow-sm"
-                    : "font-medium text-foreground hover:bg-secondary",
+                    ? "bg-primary font-semibold text-primary-foreground shadow-xs"
+                    : "font-medium text-foreground hover:bg-secondary/70",
                 )}
               >
-                <span className="min-w-0 [overflow-wrap:anywhere] leading-tight" title={c.name}>
+                <span className="min-w-0 truncate leading-tight" title={c.name}>
                   {c.name}
                 </span>
                 {c.count !== undefined && (
-                  <span className={cn("shrink-0 text-xs tabular-nums", active ? "opacity-80" : "text-muted-foreground")}>
+                  <span className={cn("shrink-0 text-xs tabular-nums font-semibold", active ? "opacity-90" : "text-muted-foreground")}>
                     {c.count}
                   </span>
                 )}
@@ -82,7 +82,7 @@ export function ProductGrid({
       {isError && !items ? (
         <QueryError error={error} what="the menu" onRetry={() => void refetch()} retrying={isFetching} />
       ) : (
-      <div className="grid flex-1 auto-rows-min grid-cols-2 gap-3 overflow-y-auto pb-4 sm:grid-cols-3 lg:grid-cols-3 lg:gap-4 xl:grid-cols-4 2xl:grid-cols-5">
+      <div className="grid flex-1 auto-rows-min grid-cols-2 gap-2.5 sm:gap-3 overflow-y-auto pb-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 3xl:grid-cols-5 scrollbar-none">
         {isLoading &&
           Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}
         {filtered?.map((item) => (
@@ -91,24 +91,29 @@ export function ProductGrid({
             type="button"
             title={item.name}
             onClick={() => onSelect(item)}
-            className="flex min-h-24 min-w-0 flex-col items-start gap-2 rounded-2xl border border-border bg-card p-3 text-left sm:p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.97] active:translate-y-0 lg:min-h-32 lg:justify-between lg:p-4 lg:hover:border-primary/50"
+            className="group relative flex min-h-[110px] min-w-0 flex-col justify-between rounded-2xl border border-border/80 bg-card p-3 sm:p-3.5 text-left shadow-2xs transition-all duration-150 hover:border-primary/50 hover:shadow-xs active:scale-[0.97]"
           >
-            <span
-              className={`h-2.5 w-2.5 rounded-full ${item.isVeg ? "bg-success" : "bg-destructive"}`}
-            />
-            <span className="line-clamp-3 w-full min-w-0 [overflow-wrap:anywhere] text-sm font-medium leading-tight text-foreground lg:text-[15px]">
-              {item.name}
-            </span>
-            <span className="flex w-full items-baseline justify-between gap-2">
-              <span className="text-sm font-semibold tabular-nums text-foreground lg:text-base">
-                {formatCurrency(item.price)}
-              </span>
+            <div className="flex w-full items-start justify-between gap-2">
+              <span
+                className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${item.isVeg ? "bg-emerald-500 shadow-xs shadow-emerald-500/30" : "bg-destructive shadow-xs shadow-destructive/30"}`}
+                title={item.isVeg ? "Vegetarian" : "Non-vegetarian"}
+              />
               {item.halfPrice != null && (
-                <span className="hidden text-[11px] tabular-nums text-muted-foreground lg:inline">
+                <span className="shrink-0 rounded-md bg-secondary/80 px-1.5 py-0.5 text-[10px] font-medium tabular-nums text-muted-foreground">
                   Half {formatCurrency(item.halfPrice)}
                 </span>
               )}
-            </span>
+            </div>
+            <div className="mt-1 flex w-full flex-1 flex-col justify-end">
+              <span className="line-clamp-2 w-full min-w-0 text-[13.5px] font-semibold leading-snug text-foreground group-hover:text-primary transition-colors sm:text-sm">
+                {item.name}
+              </span>
+              <div className="mt-2 flex w-full items-baseline justify-between">
+                <span className="text-[15px] font-bold tracking-tight tabular-nums text-foreground">
+                  {formatCurrency(item.price)}
+                </span>
+              </div>
+            </div>
           </button>
         ))}
         {filtered?.length === 0 && !isLoading && (

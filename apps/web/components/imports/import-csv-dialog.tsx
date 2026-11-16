@@ -100,10 +100,10 @@ export function ImportCsvDialog({ kind, branchId }: { kind: ImportKind; branchId
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
-      <DialogTrigger render={<Button variant="outline" size="sm" />}>
-        <Upload className="h-3.5 w-3.5" />
+      <DialogTrigger render={<Button variant="outline" size="sm" className="h-9 rounded-xl font-medium border-border/70 hover:bg-secondary/70 active:scale-95 transition-transform">
+        <Upload className="h-3.5 w-3.5 mr-1" />
         Import CSV
-      </DialogTrigger>
+      </Button>} />
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{copy.title}</DialogTitle>

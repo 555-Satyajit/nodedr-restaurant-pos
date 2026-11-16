@@ -24,9 +24,12 @@ export function orderQrPayload(orderNumber: string): string {
 
 export function normalizeScan(raw: string): ScanResult {
   // Strip control characters a scanner may add (CR/LF/TAB/STX/ETX) and trim.
-  const text = raw.replace(/[\u0000-\u001f\u007f]/g, "").trim();
+  let text = raw.replace(/[\u0000-\u001f\u007f]/g, "").trim();
   if (!text) return { kind: "invalid", reason: "empty" };
   if (text.length > 200) return { kind: "invalid", reason: "unrecognized" };
+
+  // Allow users typing "Order #20261114-0011" or "#20261114-0011" or "order: 2026..."
+  text = text.replace(/^order\s*(?:#|no\.?|id:?)?\s*/i, "").replace(/^#/, "").trim();
 
   if (text.toLowerCase().startsWith(ORDER_QR_PREFIX)) {
     const number = text.slice(ORDER_QR_PREFIX.length).trim().toUpperCase();

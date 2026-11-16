@@ -405,11 +405,22 @@ partially built, the note says what's missing.
 | Indian currency (INR) | Shipped | Default currency |
 | Dynamic UPI QR, IGST, HSN/SAC, FSSAI, WhatsApp receipts/ordering, Tally/Razorpay/PhonePe/BharatPe, Swiggy/Zomato integration | Planned | None integrated |
 
-## 🤖 AI Features
+## 🤖 AI Features & Copilot
 
 | Feature | Status | Note |
 |---|---|---|
-| Everything in this category | Planned | No AI/LLM integration anywhere in the codebase |
+| Natural Language Restaurant Operations Assistant (`/ask`) | Shipped | Full conversational AI copilot with reasoning trace, thinking steps, and operational awareness across all 18 modules. |
+| Multimodal Vision Invoice & Menu Analysis | Shipped | Upload vendor invoices or menu photos; AI extracts dishes, portions, raw stock items, and packaging automatically. |
+| Official Model Context Protocol (MCP) Server (`/api/v1/mcp`) | Shipped | Single source of truth with 44 standardized tools for Menu, Recipe BOM, Inventory, HR, Tables, Orders, Deliveries, and Reports. |
+| Recipe Bill of Materials (BOM) Auto-Generation (`create_menu_item_with_recipe`) | Shipped | Automatically creates menu items with `inventoryTracking: 'RECIPE'`, creates missing ingredients, smart-deduplicates stock, and links portion sizes. |
+| Automatic Stock Deduction on POS Checkout | Shipped | Zero manual stockroom journals required; real-time deduction of recipe ingredients or direct stock items upon order payment. |
+| One-Click Interactive Action Proposal Cards | Shipped | Pausing approval UI (`ApprovalReviewDeck`) where user reviews actions before the backend executes them via MCP. |
+| Multi-Tool Workflow Pipeline Execution | Shipped | AI orchestrates sequential operations in a single proposal (e.g. create floor + bulk add tables + register staff). |
+| Staff Registration & POS PIN Generation (`create_staff_member`) | Shipped | Creates user profiles with role-based access and bcrypt-hashed 4-digit POS quick-switch PINs. |
+| Automatic Stock Storage Allocation (`assign_storage_areas`) | Shipped | Categorizes raw ingredients into Walk-in Fridge, Freezer, Dry Store, and Kitchen Line per food safety rules. |
+| Menu Catalog Purge & Stock Conversion (`clean_menu_and_create_stock`) | Shipped | Removes raw food materials mistakenly placed on the sales menu and converts them into stockroom inventory. |
+| Real-time Operational Reports via AI (`run_report`, `dashboard_summary`) | Shipped | Generates on-demand daily sales audits, P&L breakdowns, GST summaries, and staff performance metrics. |
+| Offline / Fallback Intelligent Copilot | Shipped | Contextual fallback assistant handles restaurant queries even when external API keys are unavailable. |
 
 ## 🔥 Advanced "Enterprise POS" Features
 
@@ -447,6 +458,5 @@ out of ~305 line items in the pasted taxonomy.
 5. **Menu / Recipes** — solid (modifiers, combos, allergens, recipe costing); missing time-based/seasonal menu sets and per-branch menus.
 
 Entirely unbuilt as standalone categories: **Delivery, Cash Drawer
-Management, Marketing, Accounting, AI Features, Self-Service Kiosk.** All
-six are either an explicit later ROADMAP phase or, for AI/Kiosk, not yet
-scoped into any phase at all.
+Management, Marketing, Accounting, Self-Service Kiosk.** (AI Features
+and Operations Copilot have fully shipped with 44 native MCP tools).

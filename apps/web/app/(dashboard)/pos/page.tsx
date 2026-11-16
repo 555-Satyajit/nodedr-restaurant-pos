@@ -289,7 +289,7 @@ function PosPageInner() {
           />
         </Card>
       ) : (
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 overflow-hidden lg:grid-cols-[1fr_360px]">
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-hidden lg:grid-cols-[1fr_390px] xl:grid-cols-[1fr_420px]">
           <div className="flex min-h-0 flex-col gap-3">
             <Card className="min-h-0 flex-1 overflow-hidden p-3 sm:p-5">
               <ProductGrid branchId={branchId} onSelect={handleSelect} />
@@ -299,20 +299,23 @@ function PosPageInner() {
 
           <Card
             className={cn(
-              "min-h-0 overflow-hidden p-5",
+              "min-h-0 flex flex-col overflow-hidden p-3.5 sm:p-4.5 bg-card/95 backdrop-blur shadow-sm",
               cartOpen
                 ? "max-lg:fixed max-lg:inset-0 max-lg:z-40 max-lg:rounded-none max-lg:p-4 max-lg:pt-[max(1rem,env(safe-area-inset-top))] max-lg:pb-[max(1rem,env(safe-area-inset-bottom))]"
                 : "max-lg:hidden",
             )}
           >
-            <button
-              type="button"
-              onClick={() => setCartOpen(false)}
-              className="mb-3 -ml-1 flex items-center gap-1 text-sm font-medium text-muted-foreground lg:hidden"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Back to menu
-            </button>
+            {/* When activeOrder is open, CheckoutPanel provides its own dedicated Apple HIG navigation bar */}
+            {!activeOrder && (
+              <button
+                type="button"
+                onClick={() => setCartOpen(false)}
+                className="mb-3 -ml-1 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground lg:hidden"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Back to menu
+              </button>
+            )}
             {activeOrder ? (
               <CheckoutPanel
                 order={activeOrder}
