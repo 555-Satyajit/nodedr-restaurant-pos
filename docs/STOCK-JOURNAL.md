@@ -136,3 +136,95 @@ session immediately.
 * **Inventory > Production** and the **POS** screen, as before.
 * The voucher shows the ingredient-use variance against the recipe (same-unit rows) after "Fill from recipe".
 * **Stock Journal Reports** gained **Daily production**: per day, what was consumed (with cost) and what was produced, from posted vouchers only, with CSV export.
+
+## Manufacturing journal v2 (1.34.0)
+
+**Voucher.** One voucher records materials consumed (Source / Consumption) and products made (Destination / Production)
+together, side by side on desktop, stacked on phones. Source rows: item, available stock, quantity, unit, expected (from the
+recipe) with variance, rate, amount, **place** to take from, optional lot, and "Only <product>" (direct material). Destination
+rows: item, **good quantity** (added to stock), **rejected quantity** (recorded, never stocked), unit, **place** to put into,
+lot, and a cost percent when the split is manual. Voucher-level: date, batch/reference no., location, shift, made-on/use-by,
+narration, quality result/grade/notes. The voucher number (`PR-YYYYMMDD-nnn`, local date) is assigned on posting; a draft
+changes nothing. A double submit (same idempotency key) posts once.
+
+**Recipes (BOM).** `Inventory > Recipes`: a recipe belongs to a finished product and says what a **base output quantity** takes.
+Several recipes per product are allowed; the voucher lets you choose one. "Fill from recipe" scales it to the planned good
+quantity; you then type what was actually used. Editing a recipe bumps its version. When a voucher is saved, the chosen recipe
+(name, version, base output, lines) is **copied into the voucher** (`recipeSnapshot`) and each line keeps its expected quantity,
+so later recipe edits never rewrite a posted batch. Menu-item recipes (the older "deduct on sale" lines) are offered too,
+labelled "menu recipe", with base output 1 unless the item has a costing batch size. A voucher with no recipe says so.
+
+**Cost basis (unchanged, now documented).** Ingredient rate = the rate typed on the row, else the item's **weighted-average
+cost** (`Ingredient.costPerUnit`, moved by receipts with a cost and by costed production). Not FIFO, not last purchase. The rate
+and line cost are frozen on the voucher at posting. Stock itself is drawn FIFO from batches; the cost basis is the average.
+
+**Cost formula.** batch cost = materials + included additional costs − recovered scrap/by-product value ("Recovered scrap /
+by-product" is a cost category that is subtracted). One product: unit cost = batch cost ÷ good quantity. Several products:
+a material marked "Only X" is direct to X; everything else plus additional costs and recovery is **shared** and is split by
+**good quantity** (all outputs in one unit) or **manual percent** (must total 100). Allocated cost = direct + share; unit cost =
+allocated ÷ that product's good quantity. Rounding: shares to 4 dp; the remainder goes to the first product so the parts always
+sum to the batch. Rejected pieces carry no stock; their cost stays in the batch and is carried by the good pieces (the screen
+says so). With the split missing or incomplete the review shows a message and **no** per-product cost. The menu selling price is
+never changed by a voucher.
+
+**Places per row.** `production_lines.locationId/locationName`, `stock_movements.locationId` (both plain columns, nullable;
+older rows stay null = "unassigned", never guessed). Posting takes from a place only if that place holds the quantity (else the
+whole voucher is refused) and adds output to its place; the item's total moves exactly as before. Reversing restores both.
+The Stock journal page and CSV have a Place filter/column.
+
+**Reports.**
+* `Inventory > Stock Journal Reports > Daily production` (`GET manufacturing/daily`, `.csv`): one block per **local** date (the
+  restaurant timezone, Asia/Kolkata by default), posted vouchers only (drafts and reversed ones never appear; a corrected
+  voucher shows once, as its replacement). Filters: date range, product, batch/reference, PO number or supplier, place. Each
+  voucher expands to the full Source/Destination with expected, variance, rate, cost, good, rejected, yield, allocated cost,
+  unit cost, split method, quality, narration, source PO and recipe/version. CSV uses the same filters; its rows add up to the
+  voucher totals.
+* `Inventory > Yield analysis` (`GET manufacturing/analysis`, `.csv`): per product, batch by batch: good, rejected, reject %,
+  yield vs plan, batch cost, cost per good unit, quality note, and each ingredient **per 100 good units** beside the recipe
+  expectation and variance %, plus the weighted cost per good unit by day. It never ranks a batch as better.
+* `Inventory > Stock report` still reconciles opening + receipts + manufacturing − use ± sales/waste/adjustments = closing.
+
+**POS.** Each menu item linked to a finished product shows its latest posted production cost under the selling price
+(`GET manufacturing/menu-costs`, needs `production.report`; cashiers without it see nothing and can still sell). Cost per
+portion = Σ allocated cost ÷ Σ good quantity over that product's posted vouchers on the latest day with any, × stock quantity
+one sale uses. It is labelled "Today's production cost" only when that day is today (restaurant time); otherwise it shows the
+date and says "not today". The difference shown is price − cost, before expenses, discounts and tax; prices are never changed.
+
+**Purchase orders.** `Manufacturing` on the PO list and on each PO opens the voucher; from a PO it carries the PO number as the
+batch/reference, a narration with the PO and supplier, and starts the source rows with the items that PO actually **received**
+(quantities left blank). The PO number, id and supplier are stored on the voucher as a reference only: producing never receives
+stock again, and repeated runs against one PO each get their own voucher number.
+
+**Migration** `20261118000000_manufacturing_journal_v2` is additive (new nullable columns, a column with a zero default, two new
+tables); nothing is dropped or rewritten, and every earlier voucher reads exactly as before.
+
+## One stock journal for every kind of entry (1.36.0)
+
+`Inventory > Stock journal` now opens on **Journal**: every entry in one list, whatever kind it is.
+**New stock journal** asks what happened first, because each kind moves stock differently:
+
+| Kind | What it does to stock | Who |
+|---|---|---|
+| **Stock transfer** | Moves quantity from one place to another (or from "not yet placed" into a place). The item's total never changes. A destination is required and must differ from the source. Writes the same place levels and `location_transfers` history as Areas > Move stock. | `inventory.manage` |
+| **Production or preparation** | The existing voucher: ingredients consumed, products made, in one transaction. Now also has **Save draft**. | `production.record` to draft, `production.post` to post |
+| **Waste or spoilage** | Stock leaves, and each row becomes a real waste record (`waste_entries`, key `sj:<lineId>`), so the Waste reports, costs and large-waste approval all include it. A reason per row is required; "Other" needs a note. | `production.record` |
+| **Stock correction** | Each row either **removes** or **adds** the difference, as an `ADJUSTMENT` movement. A reason is required. Adding uses a zero-cost batch and leaves the average cost alone, exactly like Adjust stock > Add. | `inventory.manage` |
+
+The form for transfer, waste and correction has three parts: details (date and time, reference given when saved, reason), items (searchable item picker, quantity, unit, places, reason/note) and a **review** that lists what leaves stock, what enters it, the places affected, the value at average cost (only for people with `production.report`, and only when every item has a cost) and any shortage. A shortage blocks posting. **Save draft** changes nothing; **Post journal** asks for confirmation and then updates stock.
+
+**Rules**
+
+* Tables `stock_journal_entries` / `stock_journal_lines` (migration `20261120000000_stock_journal_entries`, additive; also adds `stock_movements.journalEntryId`). Numbers `SJ-YYYYMMDD-nnn` on the restaurant's local date.
+* Posting claims the draft with a conditional update, locks every item in a fixed order and makes every change in one transaction. A second post is refused (409) and changes nothing. A retried create with the same `idempotencyKey` returns the first entry.
+* Posted entries are never edited. **Reverse** (`production.void`, reason required) puts every change back and keeps the entry as *Reversed*. A transfer cannot be reversed once the destination no longer holds the quantity; a correction that added stock cannot be reversed once that stock was used.
+* A waste record written by a journal entry cannot be reversed from the Waste page (reverse the entry instead). A manager can still reject it there; the journal then shows that row's waste record as rejected.
+* Quantities: more than zero, up to 3 decimals, units converted exactly as elsewhere. Stock and places never go below zero.
+* Entry numbers (stock journal and production) now take the highest number used that day instead of counting rows, so deleting a draft can no longer make the next save collide with an existing number.
+
+**List**: search by reference (SJ-…, PR-…, batch ref) or item name; filter by date range, kind, status (Draft / Posted / Reversed) and place; sort by date or reference. Click a row for the full movement, the audit trail (created / posted / reversed, by whom and when) and the actions that apply (post, edit or delete a draft; reverse; correct for production).
+
+**API** (`/api/v1/inventory`, `?branchId=`): `GET|POST journal/entries`, `GET|PATCH|DELETE journal/entries/:id`, `POST journal/entries/:id/post`, `POST journal/entries/:id/void`. `GET journal/entries` merges production entries in, filtered by `q`, `type`, `status`, `from`, `to`, `locationId`, `sort=date|ref`, `dir=asc|desc` (300 rows max).
+
+**Export**: `GET journal/entries.csv` (same filters, one row per item line; values only with `production.report`).
+
+**Not built**: offline queueing of these three kinds on the phone app (the web form needs the server; the idempotency key protects retries).

@@ -11,6 +11,18 @@ export const productionLineSchema = z.object({
   unit: ingredientUnitSchema,
   // Costing only: the cost rate per STOCK unit of the item for this batch. Omitted = the item's current average cost.
   rate: z.union([z.string().trim().min(1), z.number()]).transform(String).optional(),
+  // ---- manufacturing journal v2 (all optional) ----
+  /** Place the quantity is taken from (inputs) or put into (outputs). Omitted = unassigned, as before. */
+  locationId: z.string().min(1).optional(),
+  /** Outputs: pieces made but not saleable. Recorded, never added to stock, cost stays with the good units. */
+  rejectedQuantity: qty.optional(),
+  lotNumber: z.string().trim().max(60).optional(),
+  /** Inputs: what the recipe expected for this batch, in the line's unit (kept for the variance report). */
+  expectedQuantity: qty.optional(),
+  /** Inputs: tie this material wholly to one finished product on the voucher (its ingredient id). */
+  directToIngredientId: z.string().min(1).optional(),
+  /** Outputs: share of the shared cost, used when the split method is MANUAL. */
+  allocationPercent: z.union([z.string().trim().min(1), z.number()]).transform(String).optional(),
 });
 
 export const extraCostSchema = z.object({
@@ -57,6 +69,12 @@ export const productionEntrySchema = z.object({
   manufacturedOn: z.coerce.date().optional(),
   expiryDate: z.coerce.date().optional(),
   costing: costingSchema.optional(),
+  /** Recipe the expected quantities came from. The server copies it into the voucher. Omit = no recipe baseline. */
+  recipe: z.object({ kind: z.enum(["RECIPE", "MENU"]), id: z.string().min(1) }).optional(),
+  /** Purchase order this run started from (recorded for reference only; it never receives stock). */
+  sourcePoId: z.string().min(1).optional(),
+  /** How shared cost is split when the voucher makes more than one product. */
+  allocationMethod: z.enum(["QUANTITY", "MANUAL"]).optional(),
   idempotencyKey: z.string().trim().min(8).max(120).optional(),
   deviceId: z.string().trim().max(120).optional(),
   /** true = post straight away, false/omitted = save as a draft. */
@@ -161,3 +179,77 @@ export const locationTransferSchema = z
   })
   .refine((v) => (v.fromLocationId ?? null) !== v.toLocationId, { message: "Choose two different places", path: ["toLocationId"] });
 export type LocationTransferDto = z.infer<typeof locationTransferSchema>;
+
+// A saved bill of materials (BOM): what `baseOutputQty` of a finished product takes.
+export const productRecipeSchema = z.object({
+  outputIngredientId: z.string().min(1),
+  name: z.string().trim().min(1).max(80),
+  baseOutputQty: z.union([z.string().trim().min(1), z.number()]).transform(String),
+  notes: z.string().trim().max(500).optional(),
+  lines: z
+    .array(z.object({ ingredientId: z.string().min(1), quantity: qty, unit: ingredientUnitSchema }))
+    .min(1, "Add at least one ingredient"),
+});
+export type ProductRecipeDto = z.infer<typeof productRecipeSchema>;
+
+// ---- Stock journal entries: transfer, waste/spoilage, correction ------------------------------------------------
+// Production has its own voucher (productionEntrySchema). These three share one shape: a header and item rows.
+export const stockJournalTypeSchema = z.enum(["TRANSFER", "WASTE", "CORRECTION"]);
+export type StockJournalType = z.infer<typeof stockJournalTypeSchema>;
+
+export const stockJournalLineSchema = z.object({
+  ingredientId: z.string().min(1, "Choose an item"),
+  quantity: qty,
+  unit: ingredientUnitSchema,
+  /** OUT = leaves stock (or leaves the "from" place); IN = enters stock. Only a correction may use IN. */
+  direction: z.enum(["OUT", "IN"]).default("OUT"),
+  /** Transfer: where it is now (null / omitted = not yet placed anywhere). Waste/correction: place it leaves or enters. */
+  fromLocationId: z.string().min(1).nullable().optional(),
+  /** Transfer only: where it goes. Required for a transfer. Correction IN may use it as the place stock enters. */
+  toLocationId: z.string().min(1).nullable().optional(),
+  wasteReason: wasteReasonSchema.optional(),
+  note: z.string().trim().max(300).optional(),
+});
+export type StockJournalLineDto = z.infer<typeof stockJournalLineSchema>;
+
+const stockJournalBase = z.object({
+  type: stockJournalTypeSchema,
+  occurredAt: z.coerce.date().optional(),
+  /** Why this entry exists. Required for a correction. */
+  reason: z.string().trim().max(500).optional(),
+  notes: z.string().trim().max(1000).optional(),
+  lines: z.array(stockJournalLineSchema).min(1, "Add at least one item").max(100, "Split this into entries of up to 100 items"),
+});
+
+const checkJournal = (v: z.infer<typeof stockJournalBase>, ctx: z.RefinementCtx) => {
+  v.lines.forEach((l, i) => {
+    const at = (field: string, message: string) => ctx.addIssue({ code: z.ZodIssueCode.custom, message, path: ["lines", i, field] });
+    if (!(Number(l.quantity) > 0)) at("quantity", "Quantity must be more than zero");
+    if (v.type !== "CORRECTION" && l.direction !== "OUT") at("direction", "Only a stock correction can add stock");
+    if (v.type === "TRANSFER") {
+      if (!l.toLocationId) at("toLocationId", "Choose where the stock goes");
+      else if ((l.fromLocationId ?? null) === l.toLocationId) at("toLocationId", "From and To must be different places");
+    }
+    if (v.type === "WASTE") {
+      if (!l.wasteReason) at("wasteReason", "Choose why it was thrown away");
+      else if (l.wasteReason === "OTHER" && !(l.note && l.note.length >= 3)) at("note", "Say what happened when the reason is Other");
+    }
+  });
+  if (v.type === "CORRECTION" && !(v.reason && v.reason.length >= 3)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Say why the stock was wrong (at least 3 characters)", path: ["reason"] });
+  }
+};
+
+export const stockJournalEntrySchema = stockJournalBase
+  .extend({
+    /** Stable key made by the client so a retried save/post cannot create a second entry. */
+    idempotencyKey: z.string().trim().min(8).max(120).optional(),
+    /** true = post straight away (stock changes now), false/omitted = save as a draft (nothing changes). */
+    post: z.boolean().default(false),
+  })
+  .superRefine(checkJournal);
+export type StockJournalEntryDto = z.infer<typeof stockJournalEntrySchema>;
+
+/** Editing a draft: same fields, no post flag, the type cannot change. */
+export const stockJournalDraftSchema = stockJournalBase.superRefine(checkJournal);
+export type StockJournalDraftDto = z.infer<typeof stockJournalDraftSchema>;

@@ -3,8 +3,8 @@
 //   pushSales     phone -> server   every sale taken (each only ever recorded once)
 import { kv, reservations, sales } from './store.js';
 import { mergeFromServer, toPayload } from './reservations.js';
-import { pickServer, request } from './net.js';
-import { counts, pushEvents, DeviceRevoked, AuthExpired as EventAuthExpired } from './journal.js';
+import { pickServer, request, serverInfo } from './net.js';
+import { BOOK_EVENTS, SALE_EVENTS, counts, pruneSynced, pushEvents, DeviceRevoked, AuthExpired as EventAuthExpired } from './journal.js';
 
 export class AuthExpired extends Error {}
 
@@ -29,6 +29,7 @@ export async function pullSnapshot(base) {
   if (s.status === 403) throw new Error('This account may not take orders.');
   if (s.status !== 200) throw new Error('The server could not send the menu. Try again in a moment.');
   await kv.set('branchId', branch.id);
+  await saveServerCaps(base);
   await kv.set('snapshot', s.data);
   await kv.set('snapshotAt', Date.now());
   await mergeBookings(s.data);
@@ -38,6 +39,21 @@ export async function pullSnapshot(base) {
     /* storage blocked */
   }
   return s.data;
+}
+
+/**
+ * What this server can take from a phone (GET /mobile/server-info). Servers older than 1.38 drop add-ons, pay later
+ * and the service charge from a sale without saying so, and have nowhere to put refunds or expenses, so the phone
+ * only offers those when the server says it can. Kept with the snapshot; refreshed on every menu refresh, so updating
+ * the server switches them on at the next sync.
+ */
+async function saveServerCaps(base) {
+  try {
+    const info = await serverInfo(base);
+    if (info) await kv.set('serverCaps', { ...(info.capabilities || {}), version: info.version || 'unknown' });
+  } catch {
+    /* keep what we had */
+  }
 }
 
 const tablesOf = (snap) => ((snap && snap.floors) || []).flatMap((f) => f.tables);
@@ -85,6 +101,8 @@ export async function pushBookings(base) {
   return { sent, newer };
 }
 
+const paidAtSend = (sale) => [...sale.payments, ...(sale.collections || []).filter((c) => !c.eventId)].reduce((n, p) => n + p.amount, 0);
+
 function payload(sale) {
   return {
     id: sale.id,
@@ -93,11 +111,23 @@ function payload(sale) {
     type: sale.type,
     tableLabel: sale.tableLabel || undefined,
     note: sale.note || undefined,
-    items: sale.items.map((i) => ({ menuItemId: i.menuItemId, quantity: i.quantity, unitPrice: i.price })),
+    items: sale.items.map((i) => ({
+      menuItemId: i.menuItemId,
+      quantity: i.quantity,
+      unitPrice: i.price,
+      ...(i.modifierIds && i.modifierIds.length ? { modifierIds: i.modifierIds } : {}),
+      ...(i.portion ? { portion: i.portion } : {}),
+      ...(i.note ? { note: i.note } : {}),
+    })),
     discountPercent: sale.discountPercent || undefined,
     discountFlat: sale.discountFlat || undefined,
     discountReason: sale.discountReason || undefined,
-    payments: sale.payments.map((p) => ({ method: p.method, amount: p.amount, tendered: p.tendered, reference: p.reference })),
+    tipAmount: sale.bill.serviceCharge || undefined,
+    customer: sale.customer && sale.customer.phone ? { phone: sale.customer.phone, ...(sale.customer.name ? { name: sale.customer.name } : {}) } : undefined,
+    takenByUserId: sale.staffServerId || undefined,
+    // Money collected before the sale reached the server goes with it; after that, each collection is its own event.
+    payments: [...sale.payments, ...(sale.collections || []).filter((c) => !c.eventId)].map((p) => ({ method: p.method, amount: p.amount, tendered: p.tendered, reference: p.reference })),
+    payLater: sale.payLater && paidAtSend(sale) < sale.bill.total - 0.004 ? true : undefined,
   };
 }
 
@@ -142,6 +172,9 @@ export async function pushSales(base) {
         delete sale.refusedReason;
         delete sale.refusedCode;
         sale.serverOrderNumber = res.orderNumber;
+        sale.serverOrderId = res.orderId;
+        // Collections taken before this point went with the sale.
+        for (const c of sale.collections || []) if (!c.eventId) c.sentWithSale = true;
         sale.syncedAt = new Date().toISOString();
         done++;
       }
@@ -163,9 +196,28 @@ export function syncNow({ refreshMenu = true } = {}) {
       const base = await pickServer(await kv.get('serverBase'));
       if (!base) return out;
       out.online = true;
-      const r = await pushSales(base);
+      // Each part is tried on its own: a sales upload that fails must not stop the kitchen records or bookings from
+      // being sent, and a refusal in one never hides what happened to the others.
+      let r = { done: 0, refused: 0, reviewed: 0 };
+      let partial = null;
       try {
-        const ev = await pushEvents(base, await kv.get('branchId'), request);
+        r = await pushSales(base);
+      } catch (e) {
+        if (e instanceof AuthExpired) throw e;
+        partial = e.message;
+      }
+      try {
+        // A refund or a collection waits until the server has its sale (it may still be waiting, or was refused).
+        if (!(await kv.get('serverCaps'))) await saveServerCaps(base); // first sync after this app update
+        const caps = (await kv.get('serverCaps')) || {};
+        const hold = async (e) => {
+          // An older server has no route for these yet: keep them waiting (not refused) until it is updated.
+          if (BOOK_EVENTS.has(e.kind) && !caps.phoneBooksSync) return true;
+          if (!SALE_EVENTS.has(e.kind)) return false;
+          const s = await sales.get(e.payload.saleId);
+          return !!s && s.status !== 'synced';
+        };
+        const ev = await pushEvents(base, await kv.get('branchId'), request, undefined, { hold });
         out.events = ev.done;
         out.eventsFailed = ev.failed;
       } catch (e) {
@@ -179,12 +231,33 @@ export function syncNow({ refreshMenu = true } = {}) {
       out.done = r.done;
       out.refused = r.refused;
       out.reviewed = r.reviewed;
-      if (refreshMenu) await pullSnapshot(base); // also brings the server's bookings
-      const b = await pushBookings(base);
-      out.bookings = b.sent;
-      out.bookingsNewer = b.newer;
-      await kv.set('lastSync', Date.now());
-      await heartbeat(base, true, out.error);
+      if (refreshMenu) {
+        try {
+          await pullSnapshot(base); // also brings the server's bookings
+        } catch (e) {
+          if (e instanceof AuthExpired) throw e;
+          partial = partial || e.message;
+        }
+      }
+      try {
+        const b = await pushBookings(base);
+        out.bookings = b.sent;
+        out.bookingsNewer = b.newer;
+      } catch (e) {
+        if (e instanceof AuthExpired) throw e;
+        partial = partial || e.message;
+      }
+      try {
+        await pruneSynced();
+      } catch {
+        /* housekeeping only */
+      }
+      if (partial) {
+        out.error = partial;
+      } else {
+        await kv.set('lastSync', Date.now());
+      }
+      await heartbeat(base, !partial, out.error);
     } catch (e) {
       if (e instanceof AuthExpired) out.authExpired = true;
       else out.error = e.message;

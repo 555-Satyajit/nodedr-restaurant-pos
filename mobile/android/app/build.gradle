@@ -13,8 +13,8 @@ android {
         applicationId "com.nodedr.orderrestro"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 133000
-        versionName "1.33.0"
+        versionCode 139000
+        versionName "1.39.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -35,7 +35,10 @@ android {
     buildTypes {
         release {
             if (keystoreProperties.getProperty("storeFile")) { signingConfig signingConfigs.release }
-            ndk { abiFilters 'arm64-v8a', 'armeabi-v7a' } // phones only; x86 is emulator-only and 12 MB larger
+            ndk {
+                abiFilters 'arm64-v8a', 'armeabi-v7a' // phones only; x86 is emulator-only and 12 MB larger
+                debugSymbolLevel 'SYMBOL_TABLE' // ships native symbols in the bundle so Play can read native crashes (clears its 'no debug symbols' warning)
+            }
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
