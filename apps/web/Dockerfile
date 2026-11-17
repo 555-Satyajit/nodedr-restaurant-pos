@@ -25,6 +25,7 @@ RUN pnpm install --frozen-lockfile
 # and ARCHITECTURE.md's "reused from nodedr-pos" section for why a runtime
 # env silently falls back to the default instead).
 FROM deps AS builder
+ENV NODE_OPTIONS="--max-old-space-size=2560"
 ARG BACKEND_URL=http://backend:4000
 ENV BACKEND_URL=${BACKEND_URL}
 COPY packages/types packages/types

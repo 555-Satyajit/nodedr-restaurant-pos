@@ -26,6 +26,7 @@ RUN pnpm install --frozen-lockfile
 
 # --- builder: compile types package, generate Prisma client, build Nest ---
 FROM deps AS builder
+ENV NODE_OPTIONS="--max-old-space-size=2560"
 COPY packages/types packages/types
 COPY apps/backend apps/backend
 RUN pnpm --filter @nodedr-restaurant/types build
