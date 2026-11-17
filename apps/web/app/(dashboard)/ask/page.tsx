@@ -960,12 +960,12 @@ export default function AskAssistantPage() {
                         <div className="flex items-center gap-2 mb-1">
                           <img
                             src="/ai-mascot.png"
-                            alt="OrderRestro Assistant"
+                            alt="Kitchflow Assistant"
                             className="h-8 w-8 object-contain pixelated shrink-0"
                           />
                           <div className="flex flex-col">
                             <span className="text-sm font-bold text-foreground leading-tight">
-                              OrderRestro Assistant
+                              Kitchflow Assistant
                             </span>
                             <span className="text-[11px] text-muted-foreground">
                               Kitchen & Operations Copilot

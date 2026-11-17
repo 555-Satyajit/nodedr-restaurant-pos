@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OrderRestro",
-  description: "Offline-first restaurant management system",
+  title: "Kitchflow",
+  description: "Modern, AI-powered restaurant management & offline-first POS",
   manifest: "/manifest.json",
   icons: {
     icon: [{ url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" }],
