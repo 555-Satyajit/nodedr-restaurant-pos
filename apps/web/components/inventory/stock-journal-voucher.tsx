@@ -31,7 +31,15 @@ const head = "px-2 py-1.5 text-left text-xs font-medium text-muted-foreground";
  * happened; amounts are worked out by the server in the review step and frozen when posted. The menu selling price
  * is never touched here.
  */
-export interface VoucherContext { productId?: string; batchRef?: string; narration?: string; sourceIds?: string[] }
+export interface VoucherContext {
+  productId?: string;
+  batchRef?: string;
+  narration?: string;
+  sourceIds?: string[];
+  poId?: string;
+  poNumber?: string;
+  supplier?: string;
+}
 
 export function StockJournalVoucher({ branchId, open, onOpenChange, productId, context }: { branchId: string | null; open: boolean; onOpenChange: (o: boolean) => void; productId?: string; context?: VoucherContext }) {
   productId = productId ?? context?.productId;

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { permissionSatisfied } from '@nodedr-restaurant/types';
 import { PrismaService } from '../prisma/prisma.service';
 import { McpToolsBuilder, Args } from '../mcp/mcp-tools.builder';
 import { SYSTEM_GUIDE_PROMPT } from './prompts/system-guide.prompt';
@@ -410,7 +411,17 @@ export class AiService {
         };
       }
 
-      // Consolidate parameters
+      // 3. Permission enforcement check for the calling user
+      if (
+        matchedTool.requiredPermission &&
+        !permissionSatisfied(user?.permissions, matchedTool.requiredPermission)
+      ) {
+        return {
+          success: false,
+          branchId: targetBranchId,
+          message: `Permission Denied: Your account role does not have permission "${matchedTool.requiredPermission}" required to execute "${matchedTool.name}".`,
+        };
+      }
       const stepParams = { ...(step.parameters || actionPayload.parameters || {}) };
 
       // Map Staff Parameters
@@ -430,6 +441,10 @@ export class AiService {
         if (!stepParams.role) {
           const roleMatch = JSON.stringify(actionPayload).match(/role[:\s"]+([A-Za-z_]+)/i);
           if (roleMatch) stepParams.role = roleMatch[1];
+        }
+        if (!stepParams.password) {
+          const passMatch = JSON.stringify(actionPayload).match(/password[:\s"]+([^",}]+)/i);
+          if (passMatch) stepParams.password = passMatch[1].trim();
         }
       }
 
@@ -502,7 +517,25 @@ export class AiService {
           parsedData = JSON.parse(textContent);
         } catch {}
 
-        executionResults.push(parsedData?.message || textContent || `Executed "${matchedTool.name}" successfully.`);
+        if (parsedData?.message) {
+          executionResults.push(parsedData.message);
+        } else if (parsedData && typeof parsedData === 'object') {
+          // Format raw read-only objects (e.g. dashboard summary, report totals) into readable summaries
+          if ('todayRevenue' in parsedData || 'todayOrders' in parsedData) {
+            executionResults.push(
+              `📊 **Sales & Orders Snapshot:**\n` +
+              `• **Total Orders Today:** ${parsedData.todayOrders ?? 0} (${parsedData.channels?.offline ?? 0} In-store, ${parsedData.channels?.online ?? 0} Online)\n` +
+              `• **Today's Revenue:** ₹${Number(parsedData.todayRevenue ?? 0).toFixed(2)}\n` +
+              `• **Table Status:** ${parsedData.tables?.available ?? 0} Available, ${parsedData.tables?.occupied ?? 0} Occupied, ${parsedData.tables?.reserved ?? 0} Reserved`
+            );
+          } else {
+            executionResults.push(
+              '```json\n' + JSON.stringify(parsedData, null, 2) + '\n```'
+            );
+          }
+        } else {
+          executionResults.push(textContent || `Executed "${matchedTool.name}" successfully.`);
+        }
       } catch (toolErr: any) {
         this.logger.error(`Error executing MCP tool ${matchedTool.name}:`, toolErr);
         return {

@@ -52,6 +52,16 @@ export function ApprovalReviewDeck({
 }: ApprovalReviewDeckProps) {
   const items = proposal.items || [];
   const bomLines = proposal.bomLines || [];
+  const toolName = (proposal.toolName || "").toLowerCase();
+  const rawParams = (proposal.parameters || {}) as Record<string, any>;
+  const actions = (proposal as any).actions as Array<{ toolName: string; parameters: Record<string, any> }> | undefined;
+
+  // Determine what type of proposal this is
+  const isStaffProposal = toolName === "create_staff_member" || "role" in rawParams || "pin" in rawParams;
+  const isTableProposal = toolName === "create_tables_bulk" || toolName === "create_floor" || "floorName" in rawParams || "numbers" in rawParams;
+  const isStorageProposal = toolName === "assign_storage_areas";
+  const isMultiAction = Array.isArray(actions) && actions.length > 0;
+  const isMenuProposal = items.length > 0 || bomLines.length > 0 || (!isStaffProposal && !isTableProposal && !isStorageProposal && !isMultiAction);
 
   return (
     <div
@@ -92,55 +102,147 @@ export function ApprovalReviewDeck({
         </div>
       )}
 
-      {/* Table Diff Section */}
+      {/* Dynamic Detail Card Based on Proposal Type */}
       <div className="px-4 pb-3">
-        <div className="rounded-lg border border-border/80 overflow-hidden bg-background/50">
-          <div className="grid grid-cols-[1.5fr_1fr_1fr] items-center gap-2 px-3 py-2 bg-muted/40 border-b border-border/80 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-            <span>Entity</span>
-            <span>Category</span>
-            <span className="text-right">Price / Value</span>
-          </div>
-
-          {/* Menu Items */}
-          {items.map((item, idx) => (
-            <div
-              key={idx}
-              className="grid grid-cols-[1.5fr_1fr_1fr] items-center gap-2 px-3 py-2.5 border-b border-border/40 text-xs text-foreground hover:bg-muted/20 transition-colors"
-            >
-              <div className="font-semibold flex items-center gap-2 truncate">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
-                <span className="truncate">{item.name}</span>
-              </div>
-              <div className="text-muted-foreground truncate text-[11px]">
-                {item.category || proposal.category || "Menu Item"}
-              </div>
-              <div className="text-right font-medium text-primary tabular-nums">
-                {item.price ? `₹${item.price.toFixed(2)}` : "Standard"}
-              </div>
+        {/* Case A: Staff Member Proposal */}
+        {isStaffProposal && (
+          <div className="rounded-lg border border-border/80 overflow-hidden bg-background/50 divide-y divide-border/40 text-xs">
+            <div className="flex items-center justify-between px-3 py-2 bg-muted/40 font-semibold text-[11px] uppercase tracking-wider text-muted-foreground">
+              <span>Staff Profile</span>
+              <span>Account Configuration</span>
             </div>
-          ))}
-
-          {/* BOM Ingredients */}
-          {bomLines.length > 0 && (
-            <div className="p-3 bg-muted/15 border-t border-border/40">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-2">
-                Recipe Bill of Materials (Automatic Stock Deduction):
+            <div className="flex items-center justify-between px-3 py-2.5">
+              <span className="text-muted-foreground font-medium">Full Name</span>
+              <span className="font-semibold text-foreground">{rawParams.name || proposal.title.replace(/^Register Staff Member\s*/i, "")}</span>
+            </div>
+            {rawParams.email && (
+              <div className="flex items-center justify-between px-3 py-2.5">
+                <span className="text-muted-foreground font-medium">Email / Login ID</span>
+                <span className="font-mono text-primary">{rawParams.email}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between px-3 py-2.5">
+              <span className="text-muted-foreground font-medium">Assigned Role</span>
+              <span className="font-medium px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 text-[11px]">
+                {rawParams.role || "KITCHEN_STAFF"}
               </span>
-              <div className="flex flex-wrap gap-1.5">
-                {bomLines.map((line, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-background border border-border text-xs font-medium text-foreground shadow-2xs"
-                  >
-                    <Package className="h-3 w-3 text-muted-foreground" />
-                    <span>{line.ingredientName}:</span>
-                    <span className="text-primary font-semibold">{line.quantity} {line.unit}</span>
-                  </span>
-                ))}
-              </div>
             </div>
-          )}
-        </div>
+            <div className="flex items-center justify-between px-3 py-2.5">
+              <span className="text-muted-foreground font-medium">POS / KDS Quick PIN</span>
+              <span className="font-mono font-semibold text-foreground tracking-wider">
+                {rawParams.pin || "None (set in profile)"}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Case B: Dining Tables / Floor Proposal */}
+        {isTableProposal && (
+          <div className="rounded-lg border border-border/80 overflow-hidden bg-background/50 divide-y divide-border/40 text-xs">
+            <div className="flex items-center justify-between px-3 py-2 bg-muted/40 font-semibold text-[11px] uppercase tracking-wider text-muted-foreground">
+              <span>Section / Floor</span>
+              <span>Table Plan</span>
+            </div>
+            <div className="flex items-center justify-between px-3 py-2.5">
+              <span className="text-muted-foreground font-medium">Floor Section</span>
+              <span className="font-semibold text-foreground">{rawParams.floorName || "Main Dining"}</span>
+            </div>
+            {rawParams.numbers && (
+              <div className="flex items-center justify-between px-3 py-2.5">
+                <span className="text-muted-foreground font-medium">Generated Table Numbers</span>
+                <div className="flex flex-wrap gap-1 justify-end">
+                  {(rawParams.numbers as string[]).map((num: string, idx: number) => (
+                    <span key={idx} className="font-mono font-semibold px-1.5 py-0.5 rounded bg-muted text-[11px]">
+                      {num}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {rawParams.capacity && (
+              <div className="flex items-center justify-between px-3 py-2.5">
+                <span className="text-muted-foreground font-medium">Seats Per Table</span>
+                <span className="font-semibold text-foreground">{rawParams.capacity} guests</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Case C: Multi-Action Pipeline Preview */}
+        {isMultiAction && (
+          <div className="rounded-lg border border-border/80 overflow-hidden bg-background/50 divide-y divide-border/40 text-xs">
+            <div className="px-3 py-2 bg-muted/40 font-semibold text-[11px] uppercase tracking-wider text-muted-foreground">
+              Pipeline Execution Plan ({actions?.length} Steps)
+            </div>
+            {actions?.map((act, idx) => (
+              <div key={idx} className="flex items-center justify-between px-3 py-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="h-5 w-5 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[10px]">
+                    {idx + 1}
+                  </span>
+                  <span className="font-mono text-[11px] text-foreground font-medium">{act.toolName}</span>
+                </div>
+                <span className="text-muted-foreground text-[11px] truncate max-w-[200px]">
+                  {JSON.stringify(act.parameters)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Case D: Standard Menu Items & Recipe BOM Proposal */}
+        {isMenuProposal && (
+          <div className="rounded-lg border border-border/80 overflow-hidden bg-background/50">
+            {items.length > 0 && (
+              <>
+                <div className="grid grid-cols-[1.5fr_1fr_1fr] items-center gap-2 px-3 py-2 bg-muted/40 border-b border-border/80 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  <span>Dish / Menu Item</span>
+                  <span>Category</span>
+                  <span className="text-right">Price</span>
+                </div>
+
+                {items.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="grid grid-cols-[1.5fr_1fr_1fr] items-center gap-2 px-3 py-2.5 border-b border-border/40 text-xs text-foreground hover:bg-muted/20 transition-colors"
+                  >
+                    <div className="font-semibold flex items-center gap-2 truncate">
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
+                      <span className="truncate">{item.name}</span>
+                    </div>
+                    <div className="text-muted-foreground truncate text-[11px]">
+                      {item.category || proposal.category || "Menu Item"}
+                    </div>
+                    <div className="text-right font-medium text-primary tabular-nums">
+                      {item.price ? `₹${item.price.toFixed(2)}` : "Standard"}
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+
+            {/* BOM Ingredients */}
+            {bomLines.length > 0 && (
+              <div className="p-3 bg-muted/15 border-t border-border/40">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-2">
+                  Recipe Bill of Materials (Automatic Stock Deduction):
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {bomLines.map((line, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-background border border-border text-xs font-medium text-foreground shadow-2xs"
+                    >
+                      <Package className="h-3 w-3 text-muted-foreground" />
+                      <span>{line.ingredientName}:</span>
+                      <span className="text-primary font-semibold">{line.quantity} {line.unit}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Action Footer */}

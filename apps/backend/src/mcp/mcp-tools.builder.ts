@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import {
   ListToolsRequestSchema,
@@ -1533,7 +1534,8 @@ export class McpToolsBuilder {
             name: { type: 'string' },
             email: { type: 'string' },
             role: { type: 'string' },
-            pin: { type: 'string' },
+            pin: { type: 'string', description: '4 to 6 digit quick-login PIN for POS and KDS terminal' },
+            password: { type: 'string', description: 'Web dashboard login password (optional, min 8 chars)' },
             phone: { type: 'string' },
           },
           required: ['name', 'email'],
@@ -1546,6 +1548,7 @@ export class McpToolsBuilder {
           const name = args.string('name');
           const email = args.string('email');
           const pin = args.optionalString('pin');
+          const rawPassword = args.optionalString('password');
           const phone = args.optionalString('phone');
           const roleName = (args.optionalString('role') || 'KITCHEN_STAFF').toUpperCase();
 
@@ -1557,24 +1560,53 @@ export class McpToolsBuilder {
             throw new Error(`Staff member with email "${email}" already exists.`);
           }
 
-          // Resolve role
-          let role = await this.prisma.role.findFirst({
+          // Strict role resolution — do not fall back to owner or arbitrary first role
+          const role = await this.prisma.role.findFirst({
             where: {
               restaurantId: actor.restaurantId,
-              name: { contains: roleName, mode: 'insensitive' },
+              name: { equals: roleName, mode: 'insensitive' },
             },
           });
           if (!role) {
-            role = await this.prisma.role.findFirst({
+            const availableRoles = await this.prisma.role.findMany({
               where: { restaurantId: actor.restaurantId },
+              select: { name: true },
             });
-          }
-          if (!role) {
-            throw new Error('No role found to assign staff member.');
+            const validNames = availableRoles.map((r) => r.name).join(', ');
+            throw new Error(
+              `Role "${roleName}" not found. Valid roles for this restaurant are: ${validNames || 'none configured'}.`,
+            );
           }
 
-          const passwordHash = await bcrypt.hash('StaffPass123!', 10);
-          const pinHash = pin ? await bcrypt.hash(pin, 10) : null;
+          // Validate PIN format and uniqueness if provided
+          let pinHash: string | null = null;
+          if (pin) {
+            if (!/^\d{4,6}$/.test(pin)) {
+              throw new Error('PIN must be between 4 and 6 numeric digits.');
+            }
+            // Check PIN collision against active users in the restaurant
+            const activeUsers = await this.prisma.user.findMany({
+              where: { restaurantId: actor.restaurantId, isActive: true, pinHash: { not: null } },
+              select: { id: true, name: true, pinHash: true },
+            });
+            for (const u of activeUsers) {
+              if (u.pinHash && (await bcrypt.compare(pin, u.pinHash))) {
+                throw new Error(`PIN "${pin}" is already in use by another staff member (${u.name}). Please choose a unique PIN.`);
+              }
+            }
+            pinHash = await bcrypt.hash(pin, 10);
+          }
+
+          // Resolve password: use manager-supplied password or generate an explicit temporary password
+          let initialPassword = rawPassword;
+          if (!initialPassword) {
+            // Generate readable, high-entropy temporary password
+            initialPassword = `Pass_${crypto.randomInt(100000, 999999)}!`;
+          } else if (initialPassword.length < 8) {
+            throw new Error('Password must be at least 8 characters long.');
+          }
+
+          const passwordHash = await bcrypt.hash(initialPassword, 10);
 
           const newUser = await this.prisma.user.create({
             data: {
@@ -1598,7 +1630,12 @@ export class McpToolsBuilder {
           return json({
             success: true,
             user: newUser,
-            message: `Staff member "${name}" registered successfully with role "${newUser.role.name}". They can immediately log in on POS/KDS using PIN ${pin || '(no PIN set)'}.`,
+            credentials: {
+              email: newUser.email,
+              webPassword: initialPassword,
+              posPin: pin || 'Not set',
+            },
+            message: `Staff member "${name}" registered with role "${newUser.role.name}". Web login password: "${initialPassword}" | POS/KDS PIN: "${pin || 'None'}". Please share these credentials securely with the staff member.`,
           });
         },
       },
@@ -1748,30 +1785,38 @@ export class McpToolsBuilder {
 
               if (existingMenuItems.length > 0) {
                 const ids = existingMenuItems.map((m) => m.id);
-                await tx.recipeIngredient.deleteMany({ where: { menuItemId: { in: ids } } });
-                await tx.menuItem.deleteMany({ where: { id: { in: ids } } });
+                // Soft-archive menu items: preserve historical orders, receipts and KDS references
+                await tx.menuItem.updateMany({
+                  where: { id: { in: ids } },
+                  data: { isActive: false },
+                });
               }
 
+              const createdStockItems: string[] = [];
               for (const name of rawItems) {
                 const existing = await tx.ingredient.findFirst({ where: { branchId, name } });
                 if (!existing) {
+                  // Do not guess inventory quantities or cost values; register with 0 stock/cost
+                  // requiring manager to log an actual purchase invoice or stock count.
                   await tx.ingredient.create({
                     data: {
                       branchId,
                       name,
                       unit: 'PIECE',
-                      currentStock: 10,
-                      costPerUnit: 15,
-                      reorderLevel: 2,
+                      currentStock: 0,
+                      costPerUnit: 0,
+                      reorderLevel: 0,
                     },
                   });
+                  createdStockItems.push(name);
                 }
               }
 
               return {
                 success: true,
-                purgedFromMenu: existingMenuItems.map((m) => m.name),
-                message: `Purged ${existingMenuItems.length} items from sales menu and ensured they exist as raw stock items in inventory.`,
+                archivedFromMenu: existingMenuItems.map((m) => m.name),
+                newStockIngredients: createdStockItems,
+                message: `Archived ${existingMenuItems.length} accidental item(s) from active sales menu (preserving sales history). Registered ${createdStockItems.length} new inventory item(s) with 0 initial stock/cost pending manager invoice entry.`,
               };
             }),
           );
@@ -1889,14 +1934,16 @@ export class McpToolsBuilder {
                 if (match) {
                   linkedIngredients.push({ id: match.id, name: match.name, quantity: portionQty });
                 } else {
+                  // Do not guess arbitrary stock quantities or unit costs; record with 0 stock/cost
+                  // so accounting and profit margins reflect only verified purchase invoices.
                   const created = await tx.ingredient.create({
                     data: {
                       branchId,
                       name: ingName,
                       unit: (bom.unit?.toUpperCase() as any) || 'PIECE',
-                      currentStock: 10,
-                      costPerUnit: 20,
-                      reorderLevel: 2,
+                      currentStock: 0,
+                      costPerUnit: 0,
+                      reorderLevel: 0,
                     },
                   });
                   allBranchIngredients.push(created);

@@ -62,10 +62,9 @@ services:
       VERIFACTU_PRODUCER_COUNTRY: "${VERIFACTU_PRODUCER_COUNTRY:-}"
       VERIFACTU_SYSTEM_ID: "${VERIFACTU_SYSTEM_ID:-}"
       SYNC_API_KEY: "${SYNC_API_KEY:-}"
-      # AI Model Provider Keys (Optional: enables Gemini / OpenAI / Anthropic models in Ask AI Copilot)
+      # AI Model Provider Keys (Optional: enables Gemini or OpenAI models in Ask AI Copilot)
       GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
       OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
-      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
       # In-app updates (Settings > Updates): the backend asks the `updater`
       # container below to pull the latest published images. Unset these two
       # and the Update button simply says this install can't update itself.

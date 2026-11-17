@@ -382,12 +382,20 @@ export default function AskAssistantPage() {
 
       const result = await res.json();
 
-      // Invalidate React Query caches so all dashboards, menu, and inventory tables update immediately
-      queryClient.invalidateQueries({ queryKey: ["menu"] });
-      queryClient.invalidateQueries({ queryKey: ["inventory"] });
-      queryClient.invalidateQueries({ queryKey: ["inventory", "ingredients"] });
-      queryClient.invalidateQueries({ queryKey: ["inventory", "tracking"] });
-      queryClient.invalidateQueries({ queryKey: ["inventory", "recipe"] });
+      // Check if backend returned an error or failure
+      const isFailed = !res.ok || result.success === false;
+
+      // Invalidate React Query caches if success
+      if (!isFailed) {
+        queryClient.invalidateQueries({ queryKey: ["menu"] });
+        queryClient.invalidateQueries({ queryKey: ["inventory"] });
+        queryClient.invalidateQueries({ queryKey: ["inventory", "ingredients"] });
+        queryClient.invalidateQueries({ queryKey: ["inventory", "tracking"] });
+        queryClient.invalidateQueries({ queryKey: ["inventory", "recipe"] });
+        queryClient.invalidateQueries({ queryKey: ["users"] });
+        queryClient.invalidateQueries({ queryKey: ["team"] });
+        queryClient.invalidateQueries({ queryKey: ["tables"] });
+      }
 
       const updated = messages.map((m) => ({
         ...m,
@@ -396,7 +404,7 @@ export default function AskAssistantPage() {
             return {
               ...p,
               state: "output-available" as any,
-              approved: true,
+              approved: !isFailed,
             };
           }
           return p;
@@ -404,6 +412,25 @@ export default function AskAssistantPage() {
       }));
 
       persistMessages(threadId, updated);
+
+      if (isFailed) {
+        const errorText = result.message || "Action execution failed. Please verify permissions and data requirements.";
+        const isPermission = errorText.toLowerCase().includes("permission");
+        const followUpError: MessageItem = {
+          id: `msg-${Date.now()}`,
+          role: "assistant",
+          parts: [
+            {
+              type: "text",
+              text: isPermission
+                ? `⛔ **Permission Denied**\n\n${errorText}`
+                : `⚠️ **Action Rejected by Database**\n\n${errorText}`,
+            },
+          ],
+        };
+        persistMessages(threadId, [...updated, followUpError]);
+        return;
+      }
 
       const itemsSummary = result.createdItems && result.createdItems.length > 0
         ? result.createdItems.map((name: string) => `• Dish: **${name}**`).join("\n")
@@ -422,7 +449,7 @@ export default function AskAssistantPage() {
         itemsSummary ? `**Registered Menu Items:**\n${itemsSummary}` : null,
         ingSummary ? `**Stockroom Inventory (Ingredients):**\n${ingSummary}` : null,
         delSummary ? `**Removed from Sales Catalog:**\n${delSummary}` : null,
-        "You can view and audit changes anytime in [Menu Management](/menu) or [Stockroom Inventory](/inventory).",
+        "You can view and audit changes anytime in [Menu Management](/menu), [Team Management](/team), or [Stockroom Inventory](/inventory).",
       ].filter(Boolean).join("\n\n");
 
       const followUp: MessageItem = {
