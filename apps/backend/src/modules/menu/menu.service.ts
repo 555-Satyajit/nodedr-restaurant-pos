@@ -259,8 +259,34 @@ export class MenuService {
 
   async deleteItem(branchId: string, id: string) {
     await this.getItem(branchId, id);
-    await this.prisma.menuItem.delete({ where: { id } });
-    return { ok: true };
+
+    // 1. Check if this menu item is linked in past order history
+    const orderedCount = await this.prisma.orderItem.count({
+      where: { menuItemId: id },
+    });
+
+    if (orderedCount > 0) {
+      // Historical orders reference this item! We must NOT hard-delete it because
+      // that would break sales history and receipts. Soft-delete by marking inactive instead.
+      await this.prisma.menuItem.update({
+        where: { id },
+        data: { isActive: false },
+      });
+      return { ok: true, softDeleted: true };
+    }
+
+    // 2. Unordered item (e.g. newly created or accidental stock item):
+    // Safely remove combo references and delete
+    await this.prisma.$transaction(async (tx) => {
+      // Clean up combo child references if any
+      await tx.comboComponent.deleteMany({
+        where: { OR: [{ comboItemId: id }, { componentItemId: id }] },
+      });
+      // Delete the menu item (cascades recipeLines, modifierGroups, costing)
+      await tx.menuItem.delete({ where: { id } });
+    });
+
+    return { ok: true, softDeleted: false };
   }
 
   // --- Modifier groups --------------------------------------------------------
