@@ -196,7 +196,7 @@ export class InventoryService {
       data: { costPrice: recipe.totalCost },
     });
     // Saving recipe lines on an untracked item means "deduct these when sold".
-    if (lines.length > 0) {
+    if (deduplicatedLines.length > 0) {
       await this.prisma.menuItem.updateMany({
         where: { id: menuItemId, inventoryTracking: 'NONE' },
         data: { inventoryTracking: 'RECIPE' },

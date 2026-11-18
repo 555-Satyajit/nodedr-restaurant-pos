@@ -188,11 +188,11 @@ export default function MenuPage() {
                       <span className="sr-only">Hidden from website</span>
                     </span>
                   )}
-                  <span className={cn("shrink-0 text-xs text-muted-foreground px-1.5 font-mono", canManage && "group-hover:hidden")}>
+                  <span className={cn("shrink-0 text-xs text-muted-foreground px-1.5 font-mono", canManage && "group-hover:hidden group-focus-within:hidden")}>
                     {cat._count.items}
                   </span>
                   {canManage && (
-                    <div className="hidden shrink-0 items-center gap-0.5 group-hover:flex">
+                    <div className="hidden shrink-0 items-center gap-0.5 group-hover:flex group-focus-within:flex">
                       <Button
                         variant="ghost"
                         size="icon"

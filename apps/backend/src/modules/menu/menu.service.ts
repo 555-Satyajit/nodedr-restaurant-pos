@@ -278,10 +278,30 @@ export class MenuService {
     // 2. Unordered item (e.g. newly created or accidental stock item):
     // Safely remove combo references and delete
     await this.prisma.$transaction(async (tx) => {
+      // Find parent combos where this item was a component
+      const parentCombos = await tx.comboComponent.findMany({
+        where: { componentItemId: id },
+        select: { comboItemId: true },
+      });
+
       // Clean up combo child references if any
       await tx.comboComponent.deleteMany({
         where: { OR: [{ comboItemId: id }, { componentItemId: id }] },
       });
+
+      // Clear isCombo on combos that now have 0 components
+      for (const parent of parentCombos) {
+        const remaining = await tx.comboComponent.count({
+          where: { comboItemId: parent.comboItemId },
+        });
+        if (remaining === 0) {
+          await tx.menuItem.update({
+            where: { id: parent.comboItemId },
+            data: { isCombo: false },
+          });
+        }
+      }
+
       // Delete the menu item (cascades recipeLines, modifierGroups, costing)
       await tx.menuItem.delete({ where: { id } });
     });
