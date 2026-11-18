@@ -14,12 +14,13 @@ import { useMfgSettings } from "@/hooks/use-manufacturing";
 export function ManufacturingCard({ branchId }: { branchId: string | null }) {
   const { data: s } = useMfgSettings(branchId);
   const [open, setOpen] = useState(false);
-  if (!s) return null;
+  if (!s || !s.enabled) return null;
   return (
     <>
       <Button
         variant="outline"
         size="sm"
+        aria-label="Manufacturing"
         onClick={() => setOpen(true)}
         className="h-8 rounded-xl border-border bg-card px-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
       >

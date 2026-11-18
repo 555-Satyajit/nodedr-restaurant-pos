@@ -76,7 +76,7 @@ function Schedule({ branchId }: { branchId: string | null }) {
       { 
         onSuccess: () => {
           toast.success("Shift added");
-          setForm({ ...form, userId: "" });
+          setForm((current) => ({ ...current, userId: "" }));
         }, 
         onError: (e) => toast.error(errMsg(e)) 
       },
