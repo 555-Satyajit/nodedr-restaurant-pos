@@ -243,6 +243,7 @@ export function CartPanel({
                     <Button
                       variant="ghost"
                       size="icon"
+                      aria-label={`Decrease quantity of ${line.name}`}
                       className="h-8 w-8 rounded-lg text-foreground hover:bg-card active:scale-95"
                       onClick={() => onDecrement(line.key)}
                     >
@@ -252,6 +253,7 @@ export function CartPanel({
                     <Button
                       variant="ghost"
                       size="icon"
+                      aria-label={`Increase quantity of ${line.name}`}
                       className="h-8 w-8 rounded-lg text-foreground hover:bg-card active:scale-95"
                       onClick={() => onIncrement(line.key)}
                     >
@@ -260,6 +262,7 @@ export function CartPanel({
                     <Button
                       variant="ghost"
                       size="icon"
+                      aria-label={`Remove ${line.name}`}
                       className="h-8 w-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 active:scale-95"
                       onClick={() => onRemove(line.key)}
                     >
