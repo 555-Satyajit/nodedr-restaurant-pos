@@ -5,8 +5,9 @@ name: CI
 # plain `jest` run needs no database); this job turns every flag on so none of them is silently skipped.
 on:
   push:
-    branches: [master]
+    branches: [kitchflow]
   pull_request:
+    branches: [kitchflow]
 
 permissions:
   contents: read
