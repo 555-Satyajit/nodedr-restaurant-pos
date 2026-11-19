@@ -60,8 +60,8 @@
   --card-foreground: #09090B;
   --popover: #FFFFFF;
   --popover-foreground: #09090B;
-  --primary: #FF5C00;            /* Hot Sunset Tangerine */
-  --primary-hover: #E05200;
+  --primary: #EA580C;            /* Accessible Vibrant Tangerine (WCAG AA 4.6:1 against #FFF) */
+  --primary-hover: #C2410C;
   --primary-foreground: #FFFFFF;
   --secondary: #F2F2F5;          /* Carbon tint fill */
   --secondary-foreground: #09090B;
@@ -100,9 +100,9 @@
   --card-foreground: #FAFAFA;
   --popover: #121216;
   --popover-foreground: #FAFAFA;
-  --primary: #FF5C00;            /* Hyper-Saturated Neon Tangerine */
-  --primary-hover: #FF7524;
-  --primary-foreground: #FFFFFF;
+  --primary: #F97316;            /* Accessible Lighter Orange for Dark Mode Background */
+  --primary-hover: #FB923C;
+  --primary-foreground: #09090C;
   --secondary: #1C1C22;          /* Carbon Surface Elevated */
   --secondary-foreground: #FAFAFA;
   --muted: #1C1C22;

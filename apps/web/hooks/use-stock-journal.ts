@@ -12,6 +12,8 @@ export interface StockItem {
   category: string | null;
   currentStock: string;
   units: IngredientUnit[];
+  /** True when a POS menu item already sells this stock item (one sale takes stock off it). */
+  onMenu?: boolean;
   /** Weighted-average cost per stock unit; only sent to people who may see production costs. */
   costPerUnit?: string;
 }
@@ -119,6 +121,32 @@ export const useStockItems = (branchId: string | null) =>
     enabled: !!branchId,
   });
 
+export interface ProducibleMenuItem {
+  id: string;
+  name: string;
+  category: string;
+  inventoryTracking: "NONE" | "RECIPE" | "DIRECT";
+}
+
+/** Menu items (Fried Rice, Momo...) that can be produced in a voucher but have no stock item yet. */
+export const useProducibleMenuItems = (branchId: string | null) =>
+  useQuery({
+    queryKey: ["producible-menu-items", branchId],
+    queryFn: () => api.get<ProducibleMenuItem[]>(`/inventory/production/menu-items?${qs(branchId)}`),
+    enabled: !!branchId,
+  });
+
+export function useMakeProducible(branchId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { menuItemId: string; unit: IngredientUnit }) =>
+      api.post<{ id: string }>(`/inventory/production/menu-items/${v.menuItemId}/stock-item?${qs(branchId)}`, { unit: v.unit }),
+    onSuccess: () => {
+      for (const k of ["stock-items", "producible-menu-items", "menu", "inventory"]) void qc.invalidateQueries({ queryKey: [k] });
+    },
+  });
+}
+
 export const useProductionEntries = (branchId: string | null, filters: Record<string, string | undefined>) =>
   useQuery({
     queryKey: ["production", branchId, filters],
@@ -165,6 +193,24 @@ export function useSaveProduction(branchId: string | null) {
   return useMutation({
     mutationFn: (body: Omit<ProductionEntryDto, "post"> & { post: boolean }) =>
       api.post<ProductionEntry>(`/inventory/production?${qs(branchId)}`, body),
+    onSuccess: refresh,
+  });
+}
+
+/** Save changes to a production draft. A posted entry is never edited; the server refuses it. */
+export function useUpdateProductionDraft(branchId: string | null) {
+  const refresh = useRefresh();
+  return useMutation({
+    mutationFn: (v: { id: string; body: Omit<ProductionEntryDto, "post"> }) =>
+      api.patch<ProductionEntry>(`/inventory/production/${v.id}?${qs(branchId)}`, v.body),
+    onSuccess: refresh,
+  });
+}
+
+export function useDeleteProductionDraft(branchId: string | null) {
+  const refresh = useRefresh();
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/inventory/production/${id}?${qs(branchId)}`),
     onSuccess: refresh,
   });
 }
@@ -373,7 +419,17 @@ export interface ProductionEntryFull extends ProductionEntry {
   postedAt: string | null;
   voidedAt: string | null;
   totalCost: string | null;
-  lines: (ProductionLine & { locationName: string | null; rejectedQuantity: string; lineCost: string | null })[];
+  lines: (ProductionLine & {
+    locationName: string | null; rejectedQuantity: string; lineCost: string | null;
+    locationId?: string | null; lotNumber?: string | null; expectedQuantity?: string | null; directToIngredientId?: string | null; allocationPercent?: string | null;
+  })[];
+  manufacturedOn?: string | null;
+  expiryDate?: string | null;
+  allocationMethod?: string | null;
+  recipeKind?: string | null;
+  recipeId?: string | null;
+  sourcePoId?: string | null;
+  costs?: { id: string; category: string; amount: string; included: boolean }[];
 }
 
 export function useJournalEntryActions(branchId: string | null) {

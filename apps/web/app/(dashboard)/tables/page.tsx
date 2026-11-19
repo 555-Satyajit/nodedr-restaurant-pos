@@ -220,23 +220,26 @@ export default function TablesPage() {
                         <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1">
                           Tools &amp; Devices
                         </DropdownMenuLabel>
-                        <DropdownMenuItem className="p-0 text-xs font-medium cursor-pointer">
-                          <a href="/tables/cards" className="flex items-center w-full px-2 py-1.5">
-                            <QrCode className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-                            Table cards (QR &amp; NFC)
-                          </a>
+                        <DropdownMenuItem
+                          className="text-xs font-medium cursor-pointer"
+                          render={<a href="/tables/cards" className="flex items-center w-full" />}
+                        >
+                          <QrCode className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                          Table cards (QR &amp; NFC)
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="p-0 text-xs font-medium cursor-pointer">
-                          <a href="/tables/live" className="flex items-center w-full px-2 py-1.5">
-                            <Tv className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-                            Live board
-                          </a>
+                        <DropdownMenuItem
+                          className="text-xs font-medium cursor-pointer"
+                          render={<a href="/tables/live" className="flex items-center w-full" />}
+                        >
+                          <Tv className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                          Live board
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="p-0 text-xs font-medium cursor-pointer">
-                          <a href="/tables/nfc" className="flex items-center w-full px-2 py-1.5">
-                            <Radio className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-                            Ordering mode &amp; NFC
-                          </a>
+                        <DropdownMenuItem
+                          className="text-xs font-medium cursor-pointer"
+                          render={<a href="/tables/nfc" className="flex items-center w-full" />}
+                        >
+                          <Radio className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                          Ordering mode &amp; NFC
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

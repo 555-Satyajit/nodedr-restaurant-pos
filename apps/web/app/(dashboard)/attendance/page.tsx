@@ -220,7 +220,7 @@ export default function AttendancePage() {
             </Button>
           ) : (
             <Button 
-              disabled={!branchId || clockIn.isPending} 
+              disabled={!branchId || clockIn.isPending || shiftLoading} 
               onClick={() => clockIn.mutate()}
               className="w-full sm:w-auto h-11 sm:h-10 rounded-xl text-xs font-semibold gap-2 active:scale-98"
             >

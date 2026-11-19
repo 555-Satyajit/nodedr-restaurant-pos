@@ -12,7 +12,7 @@ export function ChannelBadge({ channel }: { channel: "STAFF" | "ONLINE" }) {
         online ? "bg-primary/15 text-primary border border-primary/20" : "bg-secondary text-muted-foreground border border-border/60",
       )}
     >
-      {online ? "Online" : "Walk-in"}
+      {online ? "Online" : "Offline"}
     </Badge>
   );
 }

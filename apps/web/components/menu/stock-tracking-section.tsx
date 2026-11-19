@@ -128,9 +128,18 @@ function TrackingForm({
   const performSave = async (): Promise<boolean> => {
     try {
       if (mode === "RECIPE") {
+        // Validate recipe lines: require valid ingredient and positive quantity
+        for (const l of lines) {
+          if (!l.ingredientId) continue;
+          if (!(Number(l.quantity) > 0)) {
+            toast.error("Please enter a valid positive quantity for all selected recipe ingredients.");
+            return false;
+          }
+        }
+
         const merged = new Map<string, number>();
         for (const l of lines) {
-          if (!l.ingredientId || !(Number(l.quantity) > 0)) continue;
+          if (!l.ingredientId) continue;
           merged.set(l.ingredientId, (merged.get(l.ingredientId) ?? 0) + Number(l.quantity));
         }
         const clean = Array.from(merged.entries()).map(([ingredientId, quantity]) => ({

@@ -86,6 +86,7 @@ export function ScanOrderInput({ branchId }: { branchId: string | null }) {
         {value && (
           <button
             type="button"
+            aria-label="Clear order search"
             onClick={() => {
               setValue("");
               setMessage(null);
@@ -96,11 +97,9 @@ export function ScanOrderInput({ branchId }: { branchId: string | null }) {
           </button>
         )}
       </div>
-      {message && (
-        <p className="px-1 text-xs text-destructive font-medium" role="status" aria-live="polite">
-          {message}
-        </p>
-      )}
+      <p className="px-1 text-xs text-destructive font-medium min-h-[1.25rem]" role="status" aria-live="polite">
+        {message || ""}
+      </p>
     </form>
   );
 }

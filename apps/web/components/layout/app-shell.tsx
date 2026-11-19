@@ -147,7 +147,7 @@ export function AppShell({
                   title="Return to Dashboard"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  <span>Back to POS</span>
+                  <span>Back to Dashboard</span>
                 </Link>
               ) : (
                 <button
@@ -181,6 +181,7 @@ export function AppShell({
                 <MessageSquare className="h-4 w-4" />
               </Link>
 
+              <LanguageSwitcher />
               <NotificationBell />
               <UserMenu user={user} />
             </div>

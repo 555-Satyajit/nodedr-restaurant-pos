@@ -134,7 +134,7 @@ export function TicketCard({ ticket, branchId }: { ticket: KotTicket; branchId: 
           className={cn(
             "flex shrink-0 items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums border",
             isLate
-              ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
+              ? "bg-amber-500/15 text-amber-800 dark:text-amber-400 border-amber-500/30"
               : "bg-secondary/80 text-muted-foreground border-border/50",
           )}
         >
@@ -144,7 +144,7 @@ export function TicketCard({ ticket, branchId }: { ticket: KotTicket; branchId: 
       </button>
 
       {ticket.savedOnPhone && (
-        <p className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 font-medium">
+        <p className="flex items-center gap-1.5 text-xs text-amber-800 dark:text-amber-400 font-medium">
           <CloudOff className="h-3.5 w-3.5" aria-hidden /> Saved offline
         </p>
       )}
@@ -168,7 +168,7 @@ export function TicketCard({ ticket, branchId }: { ticket: KotTicket; branchId: 
               </p>
             )}
             {item.orderItem.kitchenNote && (
-              <p className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 pl-4 font-medium">
+              <p className="flex items-center gap-1 text-xs text-amber-800 dark:text-amber-400 pl-4 font-medium">
                 <Flame className="h-3 w-3" /> {item.orderItem.kitchenNote}
               </p>
             )}

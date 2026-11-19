@@ -43,8 +43,8 @@ export function AddCategoryDialog({ branchId }: { branchId: string | null }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
-          <Button variant="outline" size="sm" className="w-full rounded-xl border-dashed border-border/80 hover:border-primary/50 hover:bg-primary/5 active:scale-95 transition-all text-xs font-semibold h-9.5">
-            + Add category
+          <Button variant="outline" size="sm">
+            Add category
           </Button>
         }
       />

@@ -288,7 +288,7 @@ export default function DashboardPage() {
             <StatCard size="compact" label="Active customers" value={String(data.customers)} icon={Users} href="/customers" />
           )}
           {data.employees !== null && (
-            <StatCard size="compact" label="Team on shift" value={String(data.employees)} icon={UserRound} href="/team" />
+            <StatCard size="compact" label="Active team" value={String(data.employees)} icon={UserRound} href="/team" />
           )}
           {data.unpaidPayrollRuns !== null && (
             <StatCard

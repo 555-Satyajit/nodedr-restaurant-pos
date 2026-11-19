@@ -47,9 +47,7 @@ export function BulkPriceDialog({ branchId, categories }: { branchId: string | n
         }
       }}
     >
-      <DialogTrigger render={<Button variant="outline" size="sm" className="h-9 rounded-xl font-medium border-border/70 hover:bg-secondary/70 active:scale-95 transition-transform">
-        <Percent className="h-3.5 w-3.5 mr-1" /> Change all prices
-      </Button>}>
+      <DialogTrigger render={<Button variant="outline" size="sm" />}>
         <Percent className="h-3.5 w-3.5" />
         Change all prices
       </DialogTrigger>
