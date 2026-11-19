@@ -27,10 +27,8 @@ services:
       dockerfile: apps/backend/Dockerfile
       args:
         APP_VERSION: "${APP_VERSION:-dev}"
-    # Same name CI publishes. `up --build` tags the local build with it, and
-    # the in-app "Update now" button (see the `updater` service below) pulls
-    # the published image of a newer version under it.
-    image: ghcr.io/raktim94/nodedr-restaurant-pos-backend:${APP_VERSION:-dev}
+    # Local build for KitchFlow
+    image: kitchflow-backend:${APP_VERSION:-latest}
     container_name: nodedr-restaurant-backend
     restart: unless-stopped
     environment:
@@ -66,11 +64,9 @@ services:
       # AI Model Provider Keys (Optional: enables Gemini or OpenAI models in Ask AI Copilot)
       GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
       OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
-      # In-app updates (Settings > Updates): the backend asks the `updater`
-      # container below to pull the latest published images. Unset these two
-      # and the Update button simply says this install can't update itself.
-      UPDATER_URL: "http://updater:8080"
-      UPDATER_TOKEN: "${UPDATER_TOKEN:-nodedr-restaurant-updater}"
+      # In-app updates disabled for custom build
+      # UPDATER_URL: "http://updater:8080"
+      # UPDATER_TOKEN: "${UPDATER_TOKEN:-nodedr-restaurant-updater}"
       # Optional: S3 backup config can also be set from Settings > Backup
       # (persisted to the `backup_config` DB row, which takes priority over
       # these). Uncomment for a headless/CasaOS-style deployment that
@@ -125,7 +121,7 @@ services:
         # Next bakes rewrite destinations at BUILD time — this must be a
         # build ARG, not a runtime env (see apps/web/Dockerfile comment).
         BACKEND_URL: "http://backend:4000"
-    image: ghcr.io/raktim94/nodedr-restaurant-pos-web:${APP_VERSION:-dev}
+    image: kitchflow-web:${APP_VERSION:-latest}
     container_name: nodedr-restaurant-web
     restart: unless-stopped
     ports:
