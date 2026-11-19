@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, MessageCircle, Pencil, Phone, X } from "lucide-react";
+import { Check, CreditCard, MessageCircle, Pencil, Phone, X } from "lucide-react";
 import { useState } from "react";
 import { StatusNote, useNoteToast } from "@/components/ui/status-note";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { CancelOrderDialog, useCanCancelOrders } from "@/components/orders/cance
 import { DeliveryWhere } from "@/components/orders/delivery-where";
 import { EditBillDialog } from "@/components/orders/edit-bill-dialog";
 import { ReasonDialog } from "@/components/orders/reason-dialog";
+import { CheckoutPanel } from "@/components/pos/checkout-panel";
 import { hasPermission, useCurrentUser } from "@/hooks/use-auth";
 import { useAcceptOrder, useOrder, useRejectOrder } from "@/hooks/use-orders";
 import { formatCurrency } from "@/lib/format";
@@ -43,12 +44,15 @@ export function OrderDetailDialog({
   const { data: me } = useCurrentUser();
   const canEditRole = hasPermission(me?.user, "orders.edit");
   const canAnswer = hasPermission(me?.user, "orders.accept");
+  const canCheckoutRole = hasPermission(me?.user, "bills.print");
   const [cancelOpen, setCancelOpen] = useState(false);
   const [declineOpen, setDeclineOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [settleOpen, setSettleOpen] = useState(false);
   const customerName = order?.guestName ?? order?.customer?.name ?? "Walk-in guest";
   const pending = order?.status === "OPEN" && order?.acceptance === "PENDING";
   const canCancel = order?.status === "OPEN" && !pending;
+  const canSettle = order?.status === "OPEN" && !pending;
   const run = (fn: () => Promise<unknown>, done: string) =>
     fn().then(
       () => {
@@ -200,22 +204,33 @@ export function OrderDetailDialog({
                 This bill is paid. To correct it, issue a refund from the Dashboard — paid bills are never edited in place.
               </p>
             )}
-            {canCancel && (
-              <div className="flex gap-2">
-                {canEditRole && (
-                  <Button variant="outline" className="flex-1" onClick={() => setEditOpen(true)}>
-                    <Pencil className="mr-1.5 h-4 w-4" /> Edit bill
+            {canSettle && (
+              <div className="flex flex-col gap-2 pt-1">
+                {canCheckoutRole ? (
+                  <Button
+                    variant="cta"
+                    className="w-full font-bold shadow-xs"
+                    onClick={() => setSettleOpen(true)}
+                  >
+                    <CreditCard className="mr-1.5 h-4 w-4" /> Settle bill / Collect payment
                   </Button>
-                )}
-                {canCancelRole ? (
-                  <Button variant="destructive" className="flex-1" onClick={() => setCancelOpen(true)}>
-                    <X className="mr-1.5 h-4 w-4" /> Cancel order
-                  </Button>
-                ) : (
-                  <p className="flex-1 self-center text-xs text-muted-foreground">
-                    Cancelling needs a manager — ask one to cancel this order.
-                  </p>
-                )}
+                ) : null}
+                <div className="flex gap-2">
+                  {canEditRole && (
+                    <Button variant="outline" className="flex-1" onClick={() => setEditOpen(true)}>
+                      <Pencil className="mr-1.5 h-4 w-4" /> Edit bill
+                    </Button>
+                  )}
+                  {canCancelRole ? (
+                    <Button variant="destructive" className="flex-1" onClick={() => setCancelOpen(true)}>
+                      <X className="mr-1.5 h-4 w-4" /> Cancel order
+                    </Button>
+                  ) : (
+                    <p className="flex-1 self-center text-xs text-muted-foreground">
+                      Cancelling needs a manager — ask one to cancel this order.
+                    </p>
+                  )}
+                </div>
               </div>
             )}
             {order && (
@@ -226,8 +241,24 @@ export function OrderDetailDialog({
                   orderNumber={order.orderNumber}
                   open={cancelOpen}
                   onOpenChange={setCancelOpen}
-                  />
+                />
                 <EditBillDialog branchId={branchId} orderId={order.id} open={editOpen} onOpenChange={setEditOpen} />
+                <Dialog open={settleOpen} onOpenChange={setSettleOpen}>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Settle Bill #{order.orderNumber}</DialogTitle>
+                    </DialogHeader>
+                    <CheckoutPanel
+                      order={order}
+                      branchId={branchId}
+                      initialCustomer={order.customer}
+                      onDone={() => {
+                        setSettleOpen(false);
+                        onOpenChange(false);
+                      }}
+                    />
+                  </DialogContent>
+                </Dialog>
                 <ReasonDialog
                   open={declineOpen}
                   onOpenChange={setDeclineOpen}

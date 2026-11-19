@@ -19,32 +19,38 @@ export function BasketLines({
 }) {
   const { t } = useI18n();
   return (
-    <ul className="flex flex-col divide-y divide-border">
+    <ul className="flex flex-col divide-y divide-[#D3CBB4]/70">
       {lines.map((l) => (
         <li key={l.key} className="flex items-center gap-3 py-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[1.15rem] font-semibold leading-snug">{l.name}</p>
+            <p className="text-sm sm:text-base font-semibold leading-snug text-[#1F334D]">{l.name}</p>
             {l.modifierLabel && (
-              <p className="text-[0.95rem] leading-snug text-muted-foreground">{l.modifierLabel}</p>
+              <p className="text-xs leading-snug text-[#4E6078]">{l.modifierLabel}</p>
             )}
-            <p className="text-[1rem] tabular-nums text-muted-foreground">{fmt(l.unitPrice)}</p>
+            <p className="text-xs sm:text-sm tabular-nums text-[#4E6078]">{fmt(l.unitPrice)}</p>
           </div>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <IconButton
               label={l.quantity === 1 ? t("kiosk.basket.remove", { name: l.name }) : t("kiosk.basket.less", { name: l.name })}
               disabled={locked}
               onClick={() => onChange(l.key, -1)}
+              className="border-[#D3CBB4] bg-[#FAF7EF] text-[#A61B1B] hover:bg-[#F3D9D6]"
             >
-              {l.quantity === 1 ? <Trash2 className="h-5 w-5" aria-hidden /> : <Minus className="h-5 w-5" aria-hidden />}
+              {l.quantity === 1 ? <Trash2 className="h-4 w-4" aria-hidden /> : <Minus className="h-4 w-4 text-[#1F334D]" aria-hidden />}
             </IconButton>
-            <span className="w-8 text-center text-[1.35rem] font-bold tabular-nums" aria-live="polite">
+            <span className="w-7 text-center text-sm sm:text-base font-bold tabular-nums text-[#1F334D]" aria-live="polite">
               {l.quantity}
             </span>
-            <IconButton label={t("kiosk.basket.more", { name: l.name })} disabled={locked} onClick={() => onChange(l.key, 1)}>
-              <Plus className="h-5 w-5" aria-hidden />
+            <IconButton
+              label={t("kiosk.basket.more", { name: l.name })}
+              disabled={locked}
+              onClick={() => onChange(l.key, 1)}
+              className="border-[#D3CBB4] bg-[#FAF7EF] text-[#2A4D77] hover:bg-[#DCE5F0]"
+            >
+              <Plus className="h-4 w-4" aria-hidden />
             </IconButton>
           </div>
-          <p className="w-[5.5rem] shrink-0 text-right text-[1.15rem] font-bold tabular-nums">
+          <p className="w-16 sm:w-20 shrink-0 text-right text-sm sm:text-base font-bold tabular-nums text-[#1F334D]">
             {fmt(Math.round(l.unitPrice * l.quantity * 100) / 100)}
           </p>
         </li>

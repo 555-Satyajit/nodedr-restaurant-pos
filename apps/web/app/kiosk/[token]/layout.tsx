@@ -11,12 +11,12 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { token } = await params;
   return {
-    title: "Autopedido",
-    description: "Pide aquí",
+    title: "Kiosk",
+    description: "Self-service order kiosk",
     // Per-token manifest so "Add to Home screen" opens THIS kiosk, not "/".
     manifest: `/kiosk/${encodeURIComponent(token)}/manifest.webmanifest`,
     robots: { index: false, follow: false },
-    appleWebApp: { capable: true, title: "Autopedido", statusBarStyle: "black-translucent" },
+    appleWebApp: { capable: true, title: "Kiosk", statusBarStyle: "black-translucent" },
     formatDetection: { telephone: false },
   };
 }
@@ -33,20 +33,28 @@ export const viewport: Viewport = {
   // When the on-screen keyboard opens, shrink the layout (so the search box
   // stays visible) instead of panning the page under it.
   interactiveWidget: "resizes-content",
-  themeColor: "#6D4AFF",
+  themeColor: "#2A4D77",
 };
 
 export default function KioskLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      {/* Scale rem-based sizes with the available screen so one build serves
-          a 23.8" panel, a phone and any Android DPI: no fixed pixel
-          resolution is assumed. Only rendered on kiosk routes. */}
+      {/* Sizing: Apple HIG fluid scaling across mobile phones (portrait),
+          tablets, and large self-service kiosk displays. */}
       <style>{`
-        html { font-size: clamp(14px, min(1.15vw, 2vh), 24px); }
-        html, body { overscroll-behavior: none; }
+        html { font-size: clamp(15px, 2.5vw, 20px); }
+        @media (min-width: 768px) {
+          html { font-size: clamp(16px, 1.35vw, 22px); }
+        }
+        @media (min-width: 1200px) {
+          html { font-size: clamp(16px, 1.1vw, 24px); }
+        }
+        html, body {
+          overscroll-behavior: none;
+          background-color: var(--bg-app, #EDE7D8);
+        }
       `}</style>
-      <div className="kiosk-root fixed inset-0 overflow-hidden bg-background text-foreground">
+      <div className="kiosk-root fixed inset-0 flex flex-col overflow-hidden bg-background text-foreground antialiased selection:bg-primary/20">
         {children}
       </div>
     </>

@@ -8,15 +8,20 @@ import { cn } from "@/lib/utils";
 // app/kiosk/[token]/layout.tsx, and every control keeps a >=48 CSS px touch
 // target via the max(48px, 3rem) floor.
 
-export const TOUCH = "min-h-[max(48px,3rem)] min-w-[max(48px,3rem)]";
+export const TOUCH = "min-h-[44px] min-w-[44px]";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "hero";
 
 const VARIANT: Record<Variant, string> = {
-  primary: "bg-primary text-primary-foreground hover:bg-primary/90 disabled:bg-primary/50",
-  secondary: "border-2 border-border bg-card text-foreground hover:bg-secondary",
-  ghost: "text-foreground hover:bg-secondary",
-  danger: "bg-destructive text-white hover:bg-destructive/90",
+  // Brand Slate Blue button
+  primary: "bg-[#2A4D77] text-white shadow-xs hover:bg-[#213E61] active:bg-[#19304D] disabled:opacity-50",
+  // Surface Card button with border
+  secondary: "border border-[#D3CBB4] bg-[#FAF7EF] text-[#1F334D] shadow-2xs hover:bg-[#DCE5F0] active:bg-[#DCE5F0]/80",
+  ghost: "text-[#1F334D] hover:bg-[#DCE5F0]/50 active:bg-[#DCE5F0]",
+  // Dark crimson danger button
+  danger: "bg-[#A61B1B] text-white hover:bg-[#8B1414] active:bg-[#720E0E]",
+  // Single Hero CTA: Lobster Red accent (Rule: max 1 per screen, white bold text)
+  hero: "bg-[#F03A2A] text-white font-bold tracking-wide shadow-sm hover:bg-[#D92F1F] active:bg-[#B82416]",
 };
 
 export function KButton({
@@ -38,11 +43,11 @@ export function KButton({
       disabled={props.disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        "inline-flex touch-manipulation select-none items-center justify-center gap-2 rounded-2xl px-5 font-semibold transition-colors",
-        "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40",
-        "disabled:pointer-events-none disabled:opacity-60 active:scale-[0.98] motion-reduce:transition-none",
+        "inline-flex touch-manipulation select-none items-center justify-center gap-2 rounded-2xl px-5 font-semibold transition-all duration-150",
+        "focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-offset-2",
+        "disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] motion-reduce:transition-none",
         TOUCH,
-        large ? "py-4 text-[1.35rem]" : "py-2 text-[1.1rem]",
+        large ? "py-4 text-[1.25rem] sm:text-[1.35rem]" : "py-2.5 text-[1.05rem]",
         VARIANT[variant],
         className,
       )}
@@ -65,8 +70,8 @@ export function IconButton({
       aria-label={label}
       {...props}
       className={cn(
-        "inline-flex touch-manipulation select-none items-center justify-center rounded-full border-2 border-border bg-card text-foreground",
-        "hover:bg-secondary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/40",
+        "inline-flex touch-manipulation select-none items-center justify-center rounded-full border border-border bg-card text-foreground shadow-2xs",
+        "hover:bg-secondary focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/40",
         "disabled:pointer-events-none disabled:opacity-40 active:scale-95 motion-reduce:transition-none",
         TOUCH,
         className,
@@ -90,20 +95,20 @@ export function Banner({
 }) {
   const toneClass =
     tone === "error"
-      ? "border-destructive/50 bg-destructive/10"
+      ? "border-destructive/30 bg-destructive/10 text-destructive"
       : tone === "warning"
-        ? "border-warning/60 bg-warning/10"
-        : "border-border bg-secondary";
+        ? "border-warning/40 bg-warning/10 text-amber-900 dark:text-amber-200"
+        : "border-border bg-secondary/50 text-foreground";
   return (
     <div
       role={tone === "error" ? "alert" : "status"}
-      className={cn("flex items-center gap-4 rounded-2xl border-2 p-4", toneClass)}
+      className={cn("flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border p-4 shadow-2xs", toneClass)}
     >
-      <div className="min-w-0 flex-1">
-        <p className="text-[1.15rem] font-semibold leading-snug">{title}</p>
-        {children && <p className="mt-1 text-[1rem] leading-snug text-muted-foreground">{children}</p>}
+      <div className="min-w-0 flex-1 text-left">
+        <p className="text-[1.1rem] font-semibold leading-snug">{title}</p>
+        {children && <p className="mt-1 text-[0.95rem] leading-snug text-muted-foreground">{children}</p>}
       </div>
-      {action}
+      {action && <div className="shrink-0 self-end sm:self-center">{action}</div>}
     </div>
   );
 }

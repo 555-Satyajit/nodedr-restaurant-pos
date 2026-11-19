@@ -96,7 +96,6 @@ export function KioskApp({ token }: { token: string }) {
     dispatch({ type: "RESET" });
     setIdleWarn(null);
     setConfirmCancel(false);
-    setLocale("es");
     void menuQuery.refetch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setLocale]);
@@ -168,6 +167,7 @@ export function KioskApp({ token }: { token: string }) {
     screen = (
       <WelcomeScreen
         load={load}
+        locales={LOCALES_SHOWN}
         onRetry={() => void menuQuery.refetch()}
         onStart={() => {
           // A real tap: the only moment the browser lets us keep the screen on / go full-screen.

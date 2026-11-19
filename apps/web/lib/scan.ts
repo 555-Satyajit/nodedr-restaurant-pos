@@ -28,15 +28,15 @@ export function normalizeScan(raw: string): ScanResult {
   if (!text) return { kind: "invalid", reason: "empty" };
   if (text.length > 200) return { kind: "invalid", reason: "unrecognized" };
 
-  // Allow users typing "Order #20261114-0011" or "#20261114-0011" or "order: 2026..."
-  text = text.replace(/^order\s*(?:#|no\.?|id:?)?\s*/i, "").replace(/^#/, "").trim();
-
   if (text.toLowerCase().startsWith(ORDER_QR_PREFIX)) {
     const number = text.slice(ORDER_QR_PREFIX.length).trim().toUpperCase();
     return ORDER_NUMBER.test(number)
       ? { kind: "order", orderNumber: number }
       : { kind: "invalid", reason: "unrecognized" };
   }
+
+  // Allow users typing "Order #20261114-0011" or "#20261114-0011" or "order: 2026..."
+  text = text.replace(/^order\s*(?:#|no\.?|id:?)?\s*/i, "").replace(/^#/, "").trim();
 
   const table = TABLE_URL.exec(text);
   if (table) return { kind: "table", qrToken: table[1].toLowerCase() };

@@ -193,51 +193,57 @@
   --sidebar-ring: var(--accent);
 }
 
-/* Customer kiosk (/kiosk/*): always the light palette, whatever the device's
-   dark-mode setting, so contrast is predictable from standing distance. Only
-   custom properties are redefined here (no element rules), so Tailwind
-   utilities are unaffected. */
+/* Customer kiosk (/kiosk/*): strictly adheres to DESIGN_SYSTEM.md
+   Cream 60% surfaces, Slate Blue 30% brand/actions, Lobster Red 10% accent CTA. */
 .kiosk-root {
   color-scheme: light;
-  --background: #F7F7F5;
-  --foreground: #18181B;
-  --card: #FFFFFF;
-  --card-foreground: #18181B;
-  --popover: #FFFFFF;
-  --popover-foreground: #18181B;
-  --primary: #6D4AFF;
+  /* Surfaces */
+  --background: #EDE7D8;         /* Cream app background */
+  --foreground: #1F334D;         /* Slate text */
+  --card: #FAF7EF;               /* Card background */
+  --card-foreground: #1F334D;
+  --popover: #FAF7EF;
+  --popover-foreground: #1F334D;
+  --muted: #E2DBC8;
+  --muted-foreground: #4E6078;
+  --border: #D3CBB4;             /* Cream border */
+  --input: #D3CBB4;
+
+  /* Brand */
+  --primary: #2A4D77;            /* Refined Slate Blue */
+  --primary-hover: #213E61;
   --primary-foreground: #FFFFFF;
-  --secondary: #F1F1EF;
-  --secondary-foreground: #18181B;
-  --muted: #F1F1EF;
-  --muted-foreground: #52525B;
-  --accent: #F0EBFF;
-  --accent-foreground: #4C2EC7;
-  --destructive: #C43D4D;
-  --success: #18845B;
-  --warning: #A65C00;
-  --border: #D4D4D8;
-  --input: #A1A1AA;
-  --ring: #3C82F6;
+  --secondary: #DCE5F0;          /* Blue tint */
+  --secondary-foreground: #2A4D77;
+
+  /* Accent: Lobster Red (Single hero CTA strictly) */
+  --accent: #F03A2A;             /* Lobster Red */
+  --accent-hover: #D92F1F;
+  --accent-press: #B82416;
+  --accent-foreground: #FFFFFF;
+
+  /* Semantic */
+  --destructive: #A61B1B;        /* Dark Crimson */
+  --destructive-foreground: #FFFFFF;
+  --success: #2E7D4F;
+  --warning: #D9822B;
+  --info: #0F8B8D;
+  --ring: #2A4D77;
+
   /* Explicit system fallbacks so the kiosk never renders in a serif face if the
      bundled web font is unavailable (offline start-up, blocked fonts CDN). */
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, "Segoe UI", Roboto,
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
-  --primary-hover: #5B3BE8;
-  --info: #2863B8;
 }
 
-/* The dashboard's coarse-pointer rule above sets a 44px floor on every
-   button/input. It is unlayered, so it would silently beat any Tailwind
-   min-height on kiosk controls; the kiosk's own (larger) 48px floor must be
-   unlayered too and more specific. Bigger tiles get their height from padding. */
+/* Touch targets: Apple HIG standard 44px min touch target floor. */
 .kiosk-root button,
 .kiosk-root [role="button"],
 .kiosk-root input {
-  min-height: max(48px, 3rem);
+  min-height: 44px;
 }
 .kiosk-root button {
-  min-width: max(48px, 3rem);
+  min-width: 44px;
 }
 
 @layer base {
