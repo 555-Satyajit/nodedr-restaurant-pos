@@ -88,7 +88,7 @@ export function TrendChart({
                 stroke={color}
                 strokeWidth={2.5}
                 dot={false}
-                activeDot={{ r: 5, fill: "var(--accent)", stroke: "var(--card)", strokeWidth: 2 }}
+                activeDot={{ r: 4.5, fill: "var(--primary)", stroke: "var(--card)", strokeWidth: 2 }}
               />
             </LineChart>
           </ResponsiveContainer>

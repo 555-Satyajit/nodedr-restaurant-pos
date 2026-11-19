@@ -203,6 +203,7 @@ export function TicketCard({ ticket, branchId }: { ticket: KotTicket; branchId: 
         )}
         {nextStatus && (
           <Button
+            variant="cta"
             className="h-11 w-full rounded-xl text-sm font-semibold active:scale-[0.98] transition-transform shadow-xs"
             disabled={updateStatus.isPending}
             onClick={() =>

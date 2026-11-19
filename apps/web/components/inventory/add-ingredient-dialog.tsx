@@ -63,7 +63,7 @@ export function AddIngredientDialog({ branchId }: { branchId: string | null }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">New stock item</Button>} />
+      <DialogTrigger render={<Button variant="cta" size="sm" className="h-9 rounded-xl font-semibold shadow-xs">+ Add item</Button>} />
       <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-md">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader><DialogTitle>New stock item</DialogTitle></DialogHeader>

@@ -83,7 +83,7 @@ export function AddReservationDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm">New reservation</Button>} />
+      <DialogTrigger render={<Button variant="cta" size="sm" className="h-9 rounded-xl font-semibold shadow-xs">+ New reservation</Button>} />
       <DialogContent className="sm:max-w-md">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>

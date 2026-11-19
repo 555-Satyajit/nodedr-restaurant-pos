@@ -1,3 +1,8 @@
+import dns from 'node:dns';
+
+// Ensure IPv4 is prioritized in containerized/Docker environments where IPv6 is unroutable
+dns.setDefaultResultOrder?.('ipv4first');
+
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';

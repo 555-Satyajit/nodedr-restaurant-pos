@@ -99,15 +99,25 @@ function OrdersView() {
   return (
     <div className="flex flex-col gap-5">
       {/* Header + Search bar */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Orders</h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
             Live orders, kitchen progress, and full transaction history
           </p>
         </div>
-        <div className="w-full sm:w-80 md:w-96">
-          <ScanOrderInput branchId={branchId} />
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+          <Button
+            variant="cta"
+            size="sm"
+            className="h-9 shrink-0 rounded-xl font-medium px-3.5 text-xs shadow-xs"
+            render={<a href="/pos" />}
+          >
+            + New Order
+          </Button>
+          <div className="flex-1 sm:w-80 md:w-96">
+            <ScanOrderInput branchId={branchId} />
+          </div>
         </div>
       </div>
 
@@ -314,7 +324,7 @@ function OrderRow({
           {order.status === "OPEN" && order.heldForPayment && (
             <>
               <Badge variant="outline" className="border-warning/60 bg-warning/10 text-[11px] font-semibold text-warning">Awaiting payment</Badge>
-              <Button size="xs" variant="outline" className="h-6 text-[10px] font-medium" disabled={release.isPending} onClick={(e) => { e.stopPropagation(); release.mutate(order.id); }}>Send to kitchen</Button>
+              <Button size="xs" variant="cta" className="h-6 text-[10px] font-semibold px-2" disabled={release.isPending} onClick={(e) => { e.stopPropagation(); release.mutate(order.id); }}>Send to kitchen</Button>
             </>
           )}
           {rejected && <Badge variant="secondary" className="font-medium text-[11px] text-destructive bg-destructive/10">Rejected</Badge>}

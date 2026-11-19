@@ -67,7 +67,7 @@ function StatCard({
             : compact
               ? "gap-2 p-3.5 sm:p-4"
               : "gap-3 p-4 sm:p-5",
-          accent === "warning" && !hero && "border-accent/60 bg-gradient-to-b from-card to-accent/5",
+          accent === "warning" && !hero && "border-warning/50 bg-gradient-to-b from-card to-warning/5",
         )}
       >
         {hero && (
@@ -82,7 +82,7 @@ function StatCard({
               "flex items-center justify-center rounded-xl",
               compact ? "h-7 w-7" : "h-9 w-9",
               accent === "success" && "bg-success/15 text-success",
-              accent === "warning" && "bg-accent text-accent-foreground font-semibold shadow-xs",
+              accent === "warning" && "bg-warning/15 text-warning font-semibold",
               !accent && (hero ? "bg-primary/15 text-primary" : "bg-secondary text-primary"),
             )}
           >

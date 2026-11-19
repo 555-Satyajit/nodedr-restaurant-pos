@@ -10,13 +10,23 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-accent text-accent-foreground font-semibold border border-warning/40 [a]:hover:bg-accent/90 shadow-2xs",
-        olive:
-          "bg-primary text-primary-foreground [a]:hover:bg-primary/90",
+          "bg-[var(--bg-muted)] text-[var(--text-secondary)] font-medium border border-border",
+        brand:
+          "bg-primary text-primary-foreground font-semibold shadow-2xs",
+        new:
+          "bg-[var(--info-new-tint)] text-[var(--info-new)] font-semibold border border-[var(--info-new)]/20",
+        preparing:
+          "bg-[var(--warning-tint)] text-[#8A4B0C] font-semibold border border-[var(--warning)]/20",
+        ready:
+          "bg-[var(--success-tint)] text-[var(--success)] font-semibold border border-[var(--success)]/20",
+        danger:
+          "bg-[var(--danger-tint)] text-[var(--danger)] font-semibold border border-[var(--danger)]/20",
+        overdue:
+          "bg-[var(--danger)] text-white font-bold",
         secondary:
           "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
         destructive:
-          "bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
+          "bg-[var(--danger-tint)] text-[var(--danger)] focus-visible:ring-destructive/20 border border-[var(--danger)]/20",
         outline:
           "border-border text-foreground [a]:hover:bg-muted [a]:hover:text-muted-foreground",
         ghost:

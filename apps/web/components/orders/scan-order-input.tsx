@@ -81,7 +81,7 @@ export function ScanOrderInput({ branchId }: { branchId: string | null }) {
           autoComplete="off"
           autoCapitalize="characters"
           spellCheck={false}
-          className="h-10 pl-9 pr-9 rounded-xl text-xs sm:text-sm bg-card border-border/80 shadow-xs"
+          className="h-9 pl-9 pr-9 rounded-xl text-xs sm:text-sm bg-card border-border/80 shadow-xs"
         />
         {value && (
           <button
@@ -97,9 +97,11 @@ export function ScanOrderInput({ branchId }: { branchId: string | null }) {
           </button>
         )}
       </div>
-      <p className="px-1 text-xs text-destructive font-medium min-h-[1.25rem]" role="status" aria-live="polite">
-        {message || ""}
-      </p>
+      {message && (
+        <p className="px-1 text-xs text-destructive font-medium" role="status" aria-live="polite">
+          {message}
+        </p>
+      )}
     </form>
   );
 }

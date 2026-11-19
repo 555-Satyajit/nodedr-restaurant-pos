@@ -70,11 +70,11 @@ export default function LoginPage() {
         className="w-full max-w-sm"
       >
         <div className="mb-10 flex flex-col items-center gap-2 text-center">
-          <Link href="/">
+          <Link href="/login">
             <Logo size={44} />
           </Link>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            OrderRestro
+            KitchFlow
           </h1>
           <p className="text-sm text-muted-foreground">Sign in to manage your restaurant</p>
         </div>
@@ -158,6 +158,17 @@ export default function LoginPage() {
           <Link href="/signup" className="font-medium text-foreground hover:underline">
             Create an account
           </Link>
+        </p>
+        <p className="mt-6 text-center text-[11px] text-muted-foreground/60">
+          Powered by{" "}
+          <a
+            href="https://github.com/Raktim94/nodedr-restaurant-pos"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2 hover:text-muted-foreground transition-colors"
+          >
+            OrderRestro Engine
+          </a>
         </p>
       </motion.div>
     </main>

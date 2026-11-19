@@ -50,7 +50,7 @@ export function AddCustomerDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm" className="h-9 shrink-0 whitespace-nowrap rounded-xl px-3 text-xs font-semibold shadow-xs">New customer</Button>} />
+      <DialogTrigger render={<Button variant="cta" size="sm" className="h-9 shrink-0 whitespace-nowrap rounded-xl px-3 text-xs font-semibold shadow-xs">+ Add customer</Button>} />
       <DialogContent className="sm:max-w-sm">
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
           <DialogHeader>

@@ -53,7 +53,7 @@ export function AiAssistantSheet({
       id: "welcome",
       role: "assistant",
       content:
-        "Hello! I am your OrderRestro AI assistant. You can speak or type to take table orders, check live table status, inspect stock levels, or get instant sales reports.",
+        "Hello! I am your KitchFlow AI assistant. You can speak or type to take table orders, check live table status, inspect stock levels, or get instant sales reports.",
     },
   ]);
 
@@ -155,7 +155,7 @@ export function AiAssistantSheet({
             </div>
             <div className="flex flex-col min-w-0">
               <SheetTitle className="text-sm sm:text-base font-bold tracking-tight text-foreground truncate">
-                OrderRestro AI
+                KitchFlow AI
               </SheetTitle>
               <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                 <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />

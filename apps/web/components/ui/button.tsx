@@ -9,19 +9,19 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-accent text-accent-foreground font-semibold hover:bg-accent/90 border border-warning/40 shadow-xs active:scale-[0.98]",
-        primary:
-          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs active:scale-[0.98]",
+          "bg-primary text-primary-foreground hover:bg-[var(--blue-hover)] active:bg-[var(--blue-press)] shadow-xs active:scale-[0.98]",
         cta:
-          "bg-accent text-accent-foreground font-semibold hover:bg-accent/90 border border-warning/40 shadow-xs active:scale-[0.98]",
+          "bg-accent text-white font-medium text-sm sm:text-base hover:bg-[var(--accent-hover)] active:bg-[var(--accent-press)] shadow-xs active:scale-[0.98]",
         outline:
-          "border-border bg-card/80 text-foreground hover:bg-secondary hover:text-foreground aria-expanded:bg-secondary aria-expanded:text-foreground dark:border-border dark:bg-card/40 dark:hover:bg-secondary",
+          "border border-border bg-card text-foreground hover:bg-secondary hover:text-foreground aria-expanded:bg-secondary aria-expanded:text-foreground",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_6%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "border-[1.5px] border-primary text-primary bg-transparent hover:bg-secondary active:scale-[0.98]",
         ghost:
           "hover:bg-secondary hover:text-foreground aria-expanded:bg-secondary aria-expanded:text-foreground",
         destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+          "border-[1.5px] border-destructive text-destructive bg-transparent hover:bg-destructive/10 focus-visible:ring-destructive/30",
+        destructiveSolid:
+          "bg-destructive text-white hover:bg-destructive/90 shadow-xs",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

@@ -20,8 +20,8 @@ export function QuickActions() {
           size="sm"
           className={
             action.primary
-              ? "h-11 sm:h-9 min-h-[44px] sm:min-h-0 shrink-0 rounded-xl px-4 text-xs font-semibold shadow-xs transition active:scale-97 gap-1.5"
-              : "h-11 sm:h-9 min-h-[44px] sm:min-h-0 shrink-0 rounded-xl border-border bg-card px-3.5 text-xs text-foreground hover:bg-secondary transition active:scale-97 gap-1.5"
+              ? "h-11 sm:h-9 min-h-[44px] sm:min-h-0 shrink-0 rounded-xl px-4 text-xs font-medium text-white shadow-xs transition active:scale-97 gap-1.5"
+              : "h-11 sm:h-9 min-h-[44px] sm:min-h-0 shrink-0 rounded-xl border-border bg-card px-3.5 text-xs font-normal text-foreground hover:bg-secondary transition active:scale-97 gap-1.5"
           }
           render={<Link href={action.href} />}
         >

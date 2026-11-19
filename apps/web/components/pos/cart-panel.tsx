@@ -16,6 +16,7 @@ import { SavedAddressPicker } from "@/components/pos/saved-address-picker";
 import type { RestaurantTable } from "@/hooks/use-tables";
 import { formatCurrency } from "@/lib/format";
 import { subtotalOf } from "@/lib/pricing-preview";
+import { cn } from "@/lib/utils";
 
 export type PosOrderType = "DINE_IN" | "TAKEAWAY" | "DELIVERY";
 export interface DeliveryDetails {
@@ -283,8 +284,13 @@ export function CartPanel({
             </span>
           </div>
           <Button
-            variant="cta"
-            className="h-11 w-full rounded-xl font-bold shadow-xs transition active:scale-[0.98] disabled:opacity-50 text-xs sm:text-sm"
+            variant={canSubmit ? "cta" : "secondary"}
+            className={cn(
+              "h-11 w-full rounded-xl font-medium transition text-xs sm:text-sm",
+              canSubmit
+                ? "shadow-xs active:scale-[0.98]"
+                : "bg-muted text-muted-foreground cursor-not-allowed opacity-70",
+            )}
             disabled={!canSubmit}
             onClick={onSubmit}
           >

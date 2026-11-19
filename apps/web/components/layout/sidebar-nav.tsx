@@ -41,18 +41,15 @@ export function SidebarNav({
                 "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
                 collapsed && "justify-center px-0",
                 isActive
-                  ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                  : "text-sidebar-foreground/75 hover:bg-sidebar-accent/70 hover:text-foreground",
+                  ? "bg-white/12 text-white font-medium shadow-xs"
+                  : "text-white/80 hover:bg-white/10 hover:text-white",
               )}
             >
               <Icon
-                className={cn("h-[18px] w-[18px] shrink-0", isActive ? "text-accent" : "text-muted-foreground")}
-                strokeWidth={isActive ? 2.5 : 2}
+                className={cn("h-[18px] w-[18px] shrink-0", isActive ? "text-white" : "text-white/70")}
+                strokeWidth={isActive ? 2.2 : 1.75}
               />
-              {!collapsed && <span>{t(item.labelKey)}</span>}
-              {isActive && !collapsed && (
-                <span className="ml-auto h-2 w-2 rounded-full bg-accent shadow-[0_0_6px_rgba(255,210,31,0.8)]" />
-              )}
+              {!collapsed && <span className={isActive ? "text-white font-medium" : "text-white/85 font-normal"}>{t(item.labelKey)}</span>}
               {badges.nav[item.href] && !isActive ? <NavDot /> : null}
             </Link>
           );

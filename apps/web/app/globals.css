@@ -43,6 +43,8 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-brand: var(--brand);
+  --color-cta: var(--cta);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -53,82 +55,142 @@
 }
 
 :root {
-  /* 60-30-10 Organic Craft Palette: Desert Sand (60%), Olive Drab (30%), Signal Yellow (10%) */
-  --background: #EFE8DA;         /* 60% Rich Desert Sand Canvas */
-  --foreground: #282C1B;         /* Deep Olive Carbon Ink */
-  --card: #FAF7F0;               /* Soft Linen Warm Cream Cards */
-  --card-foreground: #282C1B;
-  --popover: #FAF7F0;
-  --popover-foreground: #282C1B;
-  --primary: #4A5335;            /* Rich 30% Olive Green */
-  --primary-hover: #3A4228;
-  --primary-foreground: #FAF7F0;
-  --secondary: #E4DCcb;          /* Subdued Sand Tone */
-  --secondary-foreground: #282C1B;
-  --muted: #E4DCcb;
-  --muted-foreground: #6B7059;   /* Muted Olive Gray */
-  --accent: #FFD21F;             /* 10% Signal Yellow Punch */
-  --accent-foreground: #1E1903;  /* High-contrast dark ink on yellow */
-  --destructive: #C23B38;
-  --success: #386A41;
-  --warning: #C99E00;
-  --info: #35627F;
-  --border: #D8CDBC;             /* Tactile warm sand border */
-  --input: #CEC2AF;
-  --ring: #FFD21F;               /* Signal Yellow focus rings */
-  --chart-1: #5B5E3C;            /* Olive Drab line */
-  --chart-2: #8F9466;            /* Light Olive */
-  --chart-3: #FFD21F;            /* Signal Yellow peak */
-  --chart-4: #D8C3A0;            /* Desert Sand bar */
-  --chart-5: #6B7059;
-  --radius: 0.875rem;
-  --sidebar: #E7DFD0;            /* Slightly deeper sand backdrop */
-  --sidebar-foreground: #282C1B;
-  --sidebar-primary: #5B5E3C;
-  --sidebar-primary-foreground: #FAF7F0;
-  --sidebar-accent: #DBD1BF;
-  --sidebar-accent-foreground: #1E2113;
-  --sidebar-border: #D8CDBC;
-  --sidebar-ring: #FFD21F;
+  /* Surfaces */
+  --bg-app: #EDE7D8;             /* cream */
+  --bg-card: #FAF7EF;
+  --bg-muted: #E2DBC8;
+  --border: #D3CBB4;
+
+  /* Brand: Refined, lighter Slate Blue (softer than deep midnight Prussian Blue) */
+  --blue: #2A4D77;               /* Balanced Slate Blue */
+  --blue-hover: #213E61;
+  --blue-press: #19304D;
+  --blue-tint: #DCE5F0;
+
+  /* Accent: Controlled Lobster Red (used strictly for single hero CTA) */
+  --accent: #F03A2A;             /* Lobster Red */
+  --accent-hover: #D92F1F;
+  --accent-press: #B82416;
+
+  /* Text */
+  --text-primary: #1F334D;
+  --text-secondary: #4E6078;
+  --text-disabled: #8A93A3;
+  --text-on-blue: #FFFFFF;
+  --text-on-accent: #FFFFFF;
+  --text-on-danger: #FFFFFF;
+
+  /* Semantic */
+  --danger: #A61B1B;             /* dark crimson */
+  --danger-tint: #F3D9D6;
+  --success: #2E7D4F;
+  --success-tint: #D7EBDD;
+  --warning: #D9822B;
+  --warning-tint: #F8E3CC;
+  --info-new: #0F8B8D;           /* teal for "New" status */
+  --info-new-tint: #D1EBEC;
+
+  /* Framework Mappings */
+  --background: var(--bg-app);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--blue);
+  --primary-hover: var(--blue-hover);
+  --primary-foreground: var(--text-on-blue);
+  --secondary: var(--blue-tint);
+  --secondary-foreground: var(--blue);
+  --muted: var(--bg-muted);
+  --muted-foreground: var(--text-secondary);
+  --destructive: var(--danger);
+  --destructive-foreground: var(--text-on-danger);
+  --input: var(--border);
+  --ring: var(--blue);
+
+  /* Chart tokens */
+  --chart-1: var(--blue);
+  --chart-2: var(--info-new);
+  --chart-3: #8DA2BF;
+  --chart-4: var(--warning);
+  --chart-5: var(--success);
+
+  --radius: 0.75rem;             /* 12px base radius */
+  --sidebar: var(--blue);
+  --sidebar-foreground: var(--text-on-blue);
+  --sidebar-primary: var(--blue);
+  --sidebar-primary-foreground: var(--text-on-blue);
+  --sidebar-accent: var(--blue-hover);
+  --sidebar-accent-foreground: var(--text-on-blue);
+  --sidebar-border: rgba(255, 255, 255, 0.12);
+  --sidebar-ring: var(--accent);
 }
 
 .dark {
-  /* 60-30-10 Organic Craft (Dark Mode) — Deep Olive Slate & Glowing Yellow */
-  --background: #151712;         /* Deep Charred Olive Canvas */
-  --foreground: #EAE8DE;         /* Sand Frost Text */
-  --card: #1E211A;               /* Olive Slate Elevated Surfaces */
-  --card-foreground: #EAE8DE;
-  --popover: #1E211A;
-  --popover-foreground: #EAE8DE;
-  --primary: #9BA06B;            /* Bright Olive Sage for dark mode */
-  --primary-hover: #AEB37E;
-  --primary-foreground: #12140D;
-  --secondary: #272A22;          /* Elevated Olive Tone */
-  --secondary-foreground: #EAE8DE;
-  --muted: #272A22;
-  --muted-foreground: #9E9F8E;
-  --accent: #FFD21F;             /* Glowing Signal Yellow */
-  --accent-foreground: #12140D;
-  --destructive: #F87171;
-  --success: #4ADE80;
-  --warning: #FFD21F;
-  --info: #38BDF8;
-  --border: #33372B;             /* Subdued dark olive border */
-  --input: #424738;
-  --ring: #FFD21F;
-  --chart-1: #9BA06B;
-  --chart-2: #FFD21F;
-  --chart-3: #D8C3A0;
-  --chart-4: #4ADE80;
-  --chart-5: #9E9F8E;
-  --sidebar: #12140D;
-  --sidebar-foreground: #EAE8DE;
-  --sidebar-primary: #FFD21F;
-  --sidebar-primary-foreground: #12140D;
-  --sidebar-accent: #25281F;
-  --sidebar-accent-foreground: #EAE8DE;
-  --sidebar-border: #33372B;
-  --sidebar-ring: #FFD21F;
+  /* Dark Mode equivalents following Prussian Blue base */
+  --bg-app: #0E1724;
+  --bg-card: #152234;
+  --bg-muted: #1D2D44;
+  --border: #2C3E5B;
+
+  --blue: #4C77B0;
+  --blue-hover: #5D8AC7;
+  --blue-press: #3A6399;
+  --blue-tint: #1C2E4A;
+
+  --accent: #F03A2A;
+  --accent-hover: #D92F1F;
+  --accent-press: #B82416;
+
+  --text-primary: #F4EFE6;
+  --text-secondary: #94A3B8;
+  --text-disabled: #64748B;
+  --text-on-blue: #FFFFFF;
+  --text-on-accent: #FFFFFF;
+  --text-on-danger: #FFFFFF;
+
+  --danger: #EF4444;
+  --danger-tint: #450A0A;
+  --success: #34D399;
+  --success-tint: #064E3B;
+  --warning: #FBBF24;
+  --warning-tint: #451A03;
+  --info-new: #22D3EE;
+  --info-new-tint: #083344;
+
+  --background: var(--bg-app);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--blue);
+  --primary-hover: var(--blue-hover);
+  --primary-foreground: var(--text-on-blue);
+  --secondary: var(--blue-tint);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--bg-muted);
+  --muted-foreground: var(--text-secondary);
+  --destructive: var(--danger);
+  --destructive-foreground: var(--text-on-danger);
+  --input: var(--border);
+  --ring: var(--blue);
+
+  --chart-1: var(--blue);
+  --chart-2: var(--info-new);
+  --chart-3: #8DA2BF;
+  --chart-4: var(--warning);
+  --chart-5: var(--success);
+
+  --sidebar: #0A111C;
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--blue);
+  --sidebar-primary-foreground: var(--text-on-blue);
+  --sidebar-accent: #152234;
+  --sidebar-accent-foreground: var(--text-primary);
+  --sidebar-border: #1D2D44;
+  --sidebar-ring: var(--accent);
 }
 
 /* Customer kiosk (/kiosk/*): always the light palette, whatever the device's

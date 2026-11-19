@@ -238,12 +238,12 @@ function renderFormattedText(text: string): React.ReactNode[] {
       );
     }
 
-    // Inline Code
+    // Inline Code / Highlight
     if (part.startsWith("`") && part.endsWith("`") && part.length >= 2) {
       return (
         <code
           key={index}
-          className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-[11px] text-foreground border border-border/50"
+          className="rounded-md bg-accent text-accent-foreground px-1.5 py-0.5 font-mono text-[11px] font-semibold border border-warning/40 shadow-2xs"
         >
           {part.slice(1, -1)}
         </code>

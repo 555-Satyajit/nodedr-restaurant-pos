@@ -166,9 +166,9 @@ export default function TablesPage() {
                   {/* Primary Tools & More Menu */}
                   <div className="flex items-center gap-1.5 shrink-0">
                     <Button
-                      variant="outline"
+                      variant="cta"
                       size="sm"
-                      className="h-9 rounded-xl px-2.5 text-xs font-semibold bg-card border-border/80 shadow-xs"
+                      className="h-9 rounded-xl px-2.5 text-xs font-semibold shadow-xs"
                       onClick={openAddTable}
                     >
                       <Plus className="h-3.5 w-3.5 mr-1" />

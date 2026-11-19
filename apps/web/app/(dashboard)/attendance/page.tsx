@@ -43,7 +43,7 @@ function LeaveRequestCard({ branchId }: { branchId: string | null }) {
   return (
     <Card className="flex flex-col gap-4 p-4 sm:p-5 rounded-2xl border border-border/80 shadow-2xs">
       <div className="flex items-center gap-2 pb-1 border-b border-border/60">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-secondary text-primary border border-border shrink-0">
           <Calendar className="h-4 w-4" />
         </div>
         <div>
@@ -195,7 +195,7 @@ export default function AttendancePage() {
           </div>
         ) : (
           <div className="flex items-center gap-3.5">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground shrink-0">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-primary shrink-0 border border-border">
               <Timer className="h-6 w-6" />
             </div>
             <div className="flex flex-col">
@@ -284,7 +284,7 @@ export default function AttendancePage() {
               ))
             ) : (
               <div className="py-12 text-center flex flex-col items-center justify-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-secondary text-primary border border-border">
                   <User className="h-5 w-5" />
                 </div>
                 <span className="text-xs sm:text-sm font-semibold text-foreground">No attendance records</span>

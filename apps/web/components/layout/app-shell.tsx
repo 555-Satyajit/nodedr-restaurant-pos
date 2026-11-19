@@ -39,7 +39,7 @@ function RestaurantBrand() {
           alt={restaurant.name}
           className="h-8 w-8 shrink-0 rounded-lg object-contain"
         />
-        <span className="truncate text-sm font-semibold tracking-tight text-sidebar-foreground">
+        <span className="truncate text-sm font-semibold tracking-tight text-white">
           {restaurant.name}
         </span>
       </>
@@ -49,8 +49,8 @@ function RestaurantBrand() {
   return (
     <>
       <Logo />
-      <span className="truncate text-sm font-semibold tracking-tight text-sidebar-foreground">
-        {restaurant?.name ?? "OrderRestro"}
+      <span className="truncate text-sm font-semibold tracking-tight text-white">
+        {restaurant?.name ?? "KitchFlow"}
       </span>
     </>
   );
@@ -163,7 +163,7 @@ export function AppShell({
               )}
               {/* The restaurant's name stays in view whether the sidebar is open or collapsed. */}
               <span className="truncate text-sm font-semibold text-foreground">
-                {shellDisplay?.restaurant?.name ?? "OrderRestro"}
+                {shellDisplay?.restaurant?.name ?? "KitchFlow"}
               </span>
             </div>
             <div className="flex items-center gap-1.5">

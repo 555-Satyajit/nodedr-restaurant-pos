@@ -212,7 +212,7 @@ export default function AskAssistantPage() {
       } else if (window.innerWidth < 768) {
         setSidebarOpen(false);
       }
-    } catch {}
+    } catch { }
   }, []);
 
   const persistMessages = (threadId: string, newMsgs: MessageItem[]) => {
@@ -220,14 +220,14 @@ export default function AskAssistantPage() {
     if (!threadId) return;
     try {
       localStorage.setItem(`${STORAGE_KEY_MESSAGES_PREFIX}${threadId}`, JSON.stringify(newMsgs));
-    } catch {}
+    } catch { }
   };
 
   const saveThreads = (newThreads: ChatThread[]) => {
     setThreads(newThreads);
     try {
       localStorage.setItem(STORAGE_KEY_THREADS, JSON.stringify(newThreads));
-    } catch {}
+    } catch { }
   };
 
   const switchThread = (threadId: string) => {
@@ -247,7 +247,7 @@ export default function AskAssistantPage() {
       const next = !prev;
       try {
         localStorage.setItem(STORAGE_KEY_SIDEBAR, next ? "1" : "0");
-      } catch {}
+      } catch { }
       return next;
     });
   };
@@ -266,7 +266,7 @@ export default function AskAssistantPage() {
     setActiveThreadId(newId);
     try {
       localStorage.setItem(STORAGE_KEY_ACTIVE_THREAD, newId);
-    } catch {}
+    } catch { }
     persistMessages(newId, []);
     if (window.innerWidth < 768) setSidebarOpen(false);
   };
@@ -276,7 +276,7 @@ export default function AskAssistantPage() {
     saveThreads(remaining);
     try {
       localStorage.removeItem(`${STORAGE_KEY_MESSAGES_PREFIX}${id}`);
-    } catch {}
+    } catch { }
 
     if (activeThreadId === id) {
       if (remaining.length > 0) {
@@ -502,16 +502,16 @@ export default function AskAssistantPage() {
       setActiveThreadId(currentThreadId);
       try {
         localStorage.setItem(STORAGE_KEY_ACTIVE_THREAD, currentThreadId);
-      } catch {}
+      } catch { }
     } else {
       const updatedThreads = threads.map((t) =>
         t.id === currentThreadId
           ? {
-              ...t,
-              title: t.title === "New Conversation" ? text.trim().slice(0, 26) || "Photo Analysis" : t.title,
-              preview: text.trim() || "Uploaded attachment",
-              time: "Just now",
-            }
+            ...t,
+            title: t.title === "New Conversation" ? text.trim().slice(0, 26) || "Photo Analysis" : t.title,
+            preview: text.trim() || "Uploaded attachment",
+            time: "Just now",
+          }
           : t
       );
       saveThreads(updatedThreads);
@@ -697,12 +697,12 @@ export default function AskAssistantPage() {
       <aside
         data-slot="chat-page-sidebar"
         className={cn(
-          "flex flex-col bg-sidebar/50 border-r border-border shrink-0 z-50 h-full",
+          "flex flex-col bg-card border-r border-border shrink-0 z-50 h-full",
           "fixed inset-y-0 left-0 w-72 md:static md:z-auto transition-transform duration-200 md:transition-none",
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         )}
       >
-        <div className="flex h-14 shrink-0 items-center justify-between border-b border-border/70 px-3.5 bg-sidebar/40">
+        <div className="flex h-14 shrink-0 items-center justify-between border-b border-border/70 px-3.5 bg-card">
           <div className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4 text-primary" />
             <span className="text-xs font-semibold tracking-tight text-foreground">
@@ -713,14 +713,14 @@ export default function AskAssistantPage() {
             size="sm"
             variant="outline"
             onClick={handleCreateNewThread}
-            className="h-7 px-2 text-xs gap-1 rounded-md"
+            className="h-7 px-2.5 text-xs font-medium gap-1 rounded-lg border-border hover:bg-secondary"
           >
             <Plus className="h-3 w-3" />
             New
           </Button>
         </div>
 
-        <div className="p-2 border-b border-border/50">
+        <div className="p-2.5 border-b border-border/50">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
             <input
@@ -728,12 +728,12 @@ export default function AskAssistantPage() {
               placeholder="Search chats…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-8 pl-8 pr-2 text-xs rounded-md border border-border bg-background/50 placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              className="w-full h-8 pl-8 pr-2 text-xs rounded-lg border border-border bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto divide-y divide-border/40 p-1">
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {filteredThreads.length === 0 ? (
             <div className="py-12 text-center text-xs text-muted-foreground">
               No conversations yet.
@@ -746,10 +746,10 @@ export default function AskAssistantPage() {
                   key={thread.id}
                   onClick={() => switchThread(thread.id)}
                   className={cn(
-                    "group flex w-full flex-col gap-1 p-2.5 rounded-lg cursor-pointer transition-colors text-left",
+                    "group flex w-full flex-col gap-1 p-2.5 rounded-xl cursor-pointer transition-colors text-left border",
                     isSelected
-                      ? "bg-secondary text-foreground font-medium"
-                      : "hover:bg-secondary/50 text-muted-foreground hover:text-foreground"
+                      ? "bg-secondary/70 border-border text-foreground font-medium shadow-2xs"
+                      : "bg-transparent border-transparent hover:bg-secondary/40 text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <div className="flex items-center justify-between gap-1">
@@ -766,7 +766,7 @@ export default function AskAssistantPage() {
                   <div className="flex items-center justify-between pt-1">
                     <Badge
                       variant={thread.status === "active" ? "default" : "secondary"}
-                      className="text-[9px] px-1 py-0 h-3.5 font-normal"
+                      className="text-[9px] px-1.5 py-0 h-4 font-normal"
                     >
                       {thread.status}
                     </Badge>
@@ -833,7 +833,7 @@ export default function AskAssistantPage() {
               <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl overflow-hidden border border-primary/30 bg-primary/5 p-1 shadow-sm transition-transform group-hover:scale-105">
                 <img
                   src="/ai-mascot.png"
-                  alt="OrderRestro Chef Robot"
+                  alt="KitchFlow Chef Robot"
                   className="w-full h-full object-contain pixelated"
                 />
               </div>
@@ -960,12 +960,12 @@ export default function AskAssistantPage() {
                         <div className="flex items-center gap-2 mb-1">
                           <img
                             src="/ai-mascot.png"
-                            alt="OrderRestro Assistant"
+                            alt="KitchFlow Assistant"
                             className="h-8 w-8 object-contain pixelated shrink-0"
                           />
                           <div className="flex flex-col">
                             <span className="text-sm font-bold text-foreground leading-tight">
-                              OrderRestro Assistant
+                              KitchFlow Assistant
                             </span>
                             <span className="text-[11px] text-muted-foreground">
                               Kitchen & Operations Copilot

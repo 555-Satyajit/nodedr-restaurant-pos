@@ -184,11 +184,11 @@ export default function ReportsPage() {
               <div className="flex items-center gap-1.5">
                 <a
                   href={`/api/v1/reports/${key}/export?${qs}&format=xlsx`}
-                  className="inline-flex h-11 sm:h-9 items-center justify-center gap-1.5 rounded-xl border border-border/80 bg-background px-3 text-xs font-medium text-foreground hover:bg-muted active:scale-98 transition-all shrink-0"
+                  className="inline-flex h-11 sm:h-9 items-center justify-center gap-1.5 rounded-xl bg-accent text-accent-foreground border border-warning/40 px-3.5 text-xs font-semibold hover:bg-accent/90 shadow-xs active:scale-98 transition-all shrink-0"
                   download
                 >
-                  <Download className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span>Excel</span>
+                  <Download className="h-3.5 w-3.5 text-accent-foreground" />
+                  <span>Download Excel</span>
                 </a>
                 <a
                   href={`/api/v1/reports/${key}/export?${qs}&format=pdf`}

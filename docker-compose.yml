@@ -62,6 +62,7 @@ services:
       VERIFACTU_PRODUCER_COUNTRY: "${VERIFACTU_PRODUCER_COUNTRY:-}"
       VERIFACTU_SYSTEM_ID: "${VERIFACTU_SYSTEM_ID:-}"
       SYNC_API_KEY: "${SYNC_API_KEY:-}"
+      NODE_OPTIONS: "${NODE_OPTIONS:---dns-result-order=ipv4first}"
       # AI Model Provider Keys (Optional: enables Gemini or OpenAI models in Ask AI Copilot)
       GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
       OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
