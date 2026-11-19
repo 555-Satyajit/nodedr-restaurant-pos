@@ -221,19 +221,19 @@ export default function StockReportPage() {
                       {n(r.opening)}
                     </TableCell>
                     <TableCell className="py-3 text-right tabular-nums text-xs text-emerald-600 font-medium">
-                      {signed(r.receipts)}
+                      {Number(r.receipts) > 0 ? `+${n(r.receipts)}` : "0"}
                     </TableCell>
                     <TableCell className="py-3 text-right tabular-nums text-xs text-muted-foreground">
-                      {signed(r.manufacturingUsed)}
+                      {Number(r.manufacturingUsed) > 0 ? `-${n(r.manufacturingUsed)}` : "0"}
                     </TableCell>
                     <TableCell className="py-3 text-right tabular-nums text-xs text-primary font-medium">
-                      {signed(r.manufacturingProduced)}
+                      {Number(r.manufacturingProduced) > 0 ? `+${n(r.manufacturingProduced)}` : "0"}
                     </TableCell>
                     <TableCell className="py-3 text-right tabular-nums text-xs text-muted-foreground">
-                      {signed(r.sales)}
+                      {Number(r.sales) > 0 ? `-${n(r.sales)}` : "0"}
                     </TableCell>
                     <TableCell className="py-3 text-right tabular-nums text-xs text-destructive">
-                      {signed(r.waste)}
+                      {Number(r.waste) > 0 ? `-${n(r.waste)}` : "0"}
                     </TableCell>
                     <TableCell className="py-3 text-right tabular-nums text-xs text-muted-foreground">
                       {signed(r.adjustments)}
@@ -277,13 +277,13 @@ export default function StockReportPage() {
                   <div className="flex flex-col">
                     <span className="text-[10px] text-muted-foreground">In (Rec/Mfg)</span>
                     <span className="font-semibold tabular-nums text-emerald-600">
-                      {signed(String((Number(r.receipts) || 0) + (Number(r.manufacturingProduced) || 0)))}
+                      +{n(String((Number(r.receipts) || 0) + (Number(r.manufacturingProduced) || 0)))}
                     </span>
                   </div>
                   <div className="flex flex-col text-right">
                     <span className="text-[10px] text-muted-foreground">Out (Sale/Waste)</span>
                     <span className="font-semibold tabular-nums text-destructive">
-                      {signed(String((Number(r.sales) || 0) + (Number(r.waste) || 0) + (Number(r.manufacturingUsed) || 0)))}
+                      -{n(String((Number(r.sales) || 0) + (Number(r.waste) || 0) + (Number(r.manufacturingUsed) || 0)))}
                     </span>
                   </div>
                 </div>

@@ -61,13 +61,13 @@ function StatCard({
     >
       <Card
         className={cn(
-          "relative flex h-full flex-col justify-between overflow-hidden border border-border/80 bg-card transition-all duration-150 hover:border-primary/50 hover:shadow-xs shadow-2xs rounded-2xl",
+          "relative flex h-full flex-col justify-between overflow-hidden border border-border bg-card transition-all duration-150 hover:border-primary/50 hover:shadow-xs shadow-2xs rounded-2xl",
           hero
             ? "gap-4 p-5 sm:p-6"
             : compact
               ? "gap-2 p-3.5 sm:p-4"
               : "gap-3 p-4 sm:p-5",
-          accent === "warning" && !hero && "border-warning/30",
+          accent === "warning" && !hero && "border-accent/60 bg-gradient-to-b from-card to-accent/5",
         )}
       >
         {hero && (
@@ -82,8 +82,8 @@ function StatCard({
               "flex items-center justify-center rounded-xl",
               compact ? "h-7 w-7" : "h-9 w-9",
               accent === "success" && "bg-success/15 text-success",
-              accent === "warning" && "bg-warning/15 text-warning",
-              !accent && (hero ? "bg-primary/15 text-primary" : "bg-secondary text-foreground"),
+              accent === "warning" && "bg-accent text-accent-foreground font-semibold shadow-xs",
+              !accent && (hero ? "bg-primary/15 text-primary" : "bg-secondary text-primary"),
             )}
           >
             <Icon className={compact ? "h-3.5 w-3.5" : "h-4 w-4 sm:h-[18px] sm:w-[18px]"} />
@@ -93,7 +93,7 @@ function StatCard({
           <span
             className={cn(
               "font-bold tabular-nums tracking-tight text-foreground",
-              hero ? "text-2xl sm:text-3xl lg:text-4xl" : compact ? "text-base sm:text-lg" : "text-xl sm:text-2xl",
+              hero ? "text-2xl sm:text-3xl lg:text-4xl text-primary" : compact ? "text-base sm:text-lg" : "text-xl sm:text-2xl",
             )}
           >
             {value}

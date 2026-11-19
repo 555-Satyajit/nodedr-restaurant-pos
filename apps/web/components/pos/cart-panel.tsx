@@ -283,7 +283,8 @@ export function CartPanel({
             </span>
           </div>
           <Button
-            className="h-11 w-full rounded-xl bg-primary text-primary-foreground font-bold shadow-xs transition active:scale-[0.98] disabled:opacity-50 text-xs sm:text-sm"
+            variant="cta"
+            className="h-11 w-full rounded-xl font-bold shadow-xs transition active:scale-[0.98] disabled:opacity-50 text-xs sm:text-sm"
             disabled={!canSubmit}
             onClick={onSubmit}
           >

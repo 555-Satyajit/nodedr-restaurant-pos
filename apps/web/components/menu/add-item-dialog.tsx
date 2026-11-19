@@ -153,7 +153,7 @@ export function AddItemDialog({
     >
       <DialogTrigger
         render={
-          <Button size="sm" disabled={categories.length === 0} className="h-9 rounded-xl font-semibold active:scale-95 transition-transform shadow-xs">
+          <Button variant="cta" size="sm" disabled={categories.length === 0} className="h-9 rounded-xl font-semibold active:scale-95 transition-transform shadow-xs">
             + Add item
           </Button>
         }

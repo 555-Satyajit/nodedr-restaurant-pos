@@ -74,7 +74,6 @@ const TAB_GROUPS: TabGroup[] = [
       { label: "Stock journal", href: "/inventory/journal", icon: BookOpen },
       { label: "Stock report", href: "/inventory/stock-report", icon: FileSpreadsheet },
       { label: "Mfg reports", href: "/inventory/manufacturing-reports", icon: Factory },
-      { label: "Yield analysis", href: "/inventory/yield-analysis", icon: FileSpreadsheet },
     ],
   },
 ];
@@ -130,7 +129,8 @@ export function InventoryTabs() {
       </nav>
 
       {/* Secondary Sub-navigation Pills: Scoped to the Selected Section */}
-      <nav
+      <div
+        role="tablist"
         aria-label="Sub-navigation"
         className="flex items-center gap-1.5 overflow-x-auto scrollbar-none pt-0.5"
       >
@@ -141,7 +141,8 @@ export function InventoryTabs() {
             <Link
               key={item.href}
               href={item.href}
-              aria-current={active ? "page" : undefined}
+              role="tab"
+              aria-selected={active}
               className={cn(
                 "flex items-center gap-1.5 rounded-xl px-3 py-1.5 min-h-[34px] text-xs font-medium transition-all shrink-0 active:scale-97",
                 active
@@ -154,7 +155,7 @@ export function InventoryTabs() {
             </Link>
           );
         })}
-      </nav>
+      </div>
     </div>
   );
 }

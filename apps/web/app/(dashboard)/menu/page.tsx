@@ -152,7 +152,7 @@ export default function MenuPage() {
                 className={cn(
                   "flex items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold transition-all active:scale-[0.99]",
                   !selectedCategoryId
-                    ? "bg-primary text-primary-foreground shadow-xs"
+                    ? "bg-primary text-primary-foreground font-bold shadow-xs"
                     : "text-muted-foreground hover:bg-secondary/70 hover:text-foreground",
                 )}
               >
@@ -172,7 +172,7 @@ export default function MenuPage() {
                   className={cn(
                     "group flex items-center justify-between rounded-xl pl-3 pr-1.5 py-1 text-left text-xs font-medium transition-all",
                     selectedCategoryId === cat.id
-                      ? "bg-secondary text-foreground font-semibold"
+                      ? "bg-primary text-primary-foreground font-bold shadow-xs"
                       : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
                   )}
                 >

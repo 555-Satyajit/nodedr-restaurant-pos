@@ -69,7 +69,7 @@ export function ProductGrid({
                   {c.name}
                 </span>
                 {c.count !== undefined && (
-                  <span className={cn("shrink-0 text-xs tabular-nums font-semibold", active ? "opacity-90" : "text-muted-foreground")}>
+                  <span className={cn("shrink-0 text-xs tabular-nums font-semibold", active ? "text-primary-foreground" : "text-muted-foreground")}>
                     {c.count}
                   </span>
                 )}
